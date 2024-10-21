@@ -119,7 +119,7 @@ const Cart = () => {
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="list-product-main w-full mt-3">
+                                    {/* <div className="list-product-main w-full mt-3">
                                         {cartState.cartArray.length < 1 ? (
                                             <p className='text-button pt-3'>No product in cart</p>
                                         ) : (
@@ -176,7 +176,7 @@ const Cart = () => {
                                                 </div>
                                             ))
                                         )}
-                                    </div>
+                                    </div> */}
                                 </div>
                             </div>
                             <div className="input-block discount-code w-full h-12 sm:mt-7 mt-5">
@@ -186,7 +186,7 @@ const Cart = () => {
                                     </button>
                                 </form>
                             </div>
-                            <div className="list-voucher flex items-center gap-5 flex-wrap sm:mt-7 mt-5">
+                            {/* <div className="list-voucher flex items-center gap-5 flex-wrap sm:mt-7 mt-5">
                                 <div className={`item ${applyCode === 200 ? 'bg-green' : ''} border border-line rounded-lg py-2`}>
                                     <div className="top flex gap-10 justify-between px-3 pb-2 border-b border-dashed border-line">
                                         <div className="left">
@@ -247,7 +247,7 @@ const Cart = () => {
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </div> */}
                         </div>
                         <div className="xl:w-1/3 xl:pl-12 w-full">
                             <div className="checkout-block bg-surface p-6 rounded-2xl">

@@ -21,7 +21,7 @@ const inter = Poppins({ subsets: ["latin"], weight: "400" });
 
 const serverTimeLeft: CountdownTimeType = countdownTime();
 
-const instrument = Instrument_Sans({ subsets: ["latin"] });
+// const instrument = Instrument_Sans({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Anvogue",
@@ -59,9 +59,13 @@ export default function RootLayout({
                 <div className=" md:w-11/12 md:flex md:flex-col flex flex-col  md:gap-5 md:mt-5 w-full px-0 md:px-0">
                   {/* <Navbar /> */}
                   {children}
+                  {/* <ModalCart serverTimeLeft={serverTimeLeft} />
+                  <ModalWishlist />
+                  <ModalSearch />
+                  <ModalQuickview />
+                  <ModalCompare /> */}
                 </div>
               </div>
-              <Footer />
             </div>
           </AppRouterCacheProvider>
         </body>

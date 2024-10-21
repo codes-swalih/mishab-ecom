@@ -8,6 +8,7 @@ import Ads from "../components/Homepage/Ads";
 import FirstBanner from "../components/Homepage/FirstBanner";
 import TopNavOne from "@/components/Header/TopNav/TopNavOne";
 import MenuOne from "@/components/Header/Menu/MenuOne";
+import Footer from "@/components/Footer";
 
 export default function Home() {
   return (
@@ -28,6 +29,7 @@ export default function Home() {
           <FeaturedSection />
           <LatestPoroducts />
           <Ads />
+          <Footer />
         </div>
       </div>
     </div>
