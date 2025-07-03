@@ -334,9 +334,9 @@ const MyAccount = () => {
                                             return true;
                                         }).map((order: any, index: number) => (
                                             
+                                            <div key={index}>
                                             <div>
-                                            <div>
-                                            <div key={index} className="order_item mt-5 border border-line rounded-lg box-shadow-xs">
+                                            <div className="order_item mt-5 border border-line rounded-lg box-shadow-xs">
                                                 <div className="flex flex-wrap items-center justify-between gap-4 p-5 border-b border-line">
                                                     <div className="flex items-center gap-2">
                                                         <strong className="text-title">Order Number:</strong>
