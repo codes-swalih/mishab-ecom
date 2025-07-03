@@ -14,24 +14,24 @@ const BuyPack = () => {
     const { addToCart, updateCart, cartState } = useCart();
     const { openModalCart } = useModalCartContext()
 
-    const handleAddToCart = () => {
-        if (!cartState.cartArray.find(item => item.id === '123')) {
-            addToCart(productData.find(item => item.id === '123') as ProductType)
-            updateCart('123', 1, '', '')
-        }
+    // const handleAddToCart = () => {
+    //     if (!cartState.cartArray.find(item => item.id === '123')) {
+    //         addToCart(productData.find(item => item.id === '123') as ProductType)
+    //         updateCart('123', 1, '', '')
+    //     }
 
-        if (!cartState.cartArray.find(item => item.id === '124')) {
-            addToCart(productData.find(item => item.id === '124') as ProductType)
-            updateCart('124', 1, '', '')
-        }
+    //     if (!cartState.cartArray.find(item => item.id === '124')) {
+    //         addToCart(productData.find(item => item.id === '124') as ProductType)
+    //         updateCart('124', 1, '', '')
+    //     }
 
-        if (!cartState.cartArray.find(item => item.id === '125')) {
-            addToCart(productData.find(item => item.id === '125') as ProductType)
-            updateCart('125', 1, '', '')
-        }
+    //     if (!cartState.cartArray.find(item => item.id === '125')) {
+    //         addToCart(productData.find(item => item.id === '125') as ProductType)
+    //         updateCart('125', 1, '', '')
+    //     }
 
-        openModalCart()
-    };
+    //     openModalCart()
+    // };
 
     const handleDetailProduct = (productId: string) => {
         // redirect to shop with category selected
@@ -41,7 +41,7 @@ const BuyPack = () => {
     return (
         <>
             <div className="buy-pack-block md:py-20 py-10 md:mt-20 mt-10 relative">
-                <div className="bg-img absolute top-0 left-0 w-full h-full z-[-1]">
+                {/* <div className="bg-img absolute top-0 left-0 w-full h-full z-[-1]">
                     <Image
                         src={'/images/banner/bg-buy-pack-organic.png'}
                         width={3000}
@@ -179,7 +179,7 @@ const BuyPack = () => {
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> */}
             </div>
         </>
     )

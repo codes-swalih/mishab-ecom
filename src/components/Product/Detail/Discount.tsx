@@ -27,104 +27,104 @@ interface Props {
 }
 
 const Discount: React.FC<Props> = ({ data, productId }) => {
-    const swiperRef: any = useRef();
-    const [photoIndex, setPhotoIndex] = useState(0)
-    const [openPopupImg, setOpenPopupImg] = useState(false)
-    const [openSizeGuide, setOpenSizeGuide] = useState<boolean>(false)
-    const [thumbsSwiper, setThumbsSwiper] = useState<SwiperCore | null>(null)
-    const [activeColor, setActiveColor] = useState<string>('')
-    const [activeSize, setActiveSize] = useState<string>('')
-    const [activeTab, setActiveTab] = useState<string | undefined>('description')
-    const { addToCart, updateCart, cartState } = useCart()
-    const { openModalCart } = useModalCartContext()
-    const { addToWishlist, removeFromWishlist, wishlistState } = useWishlist()
-    const { openModalWishlist } = useModalWishlistContext()
-    const { addToCompare, removeFromCompare, compareState } = useCompare();
-    const { openModalCompare } = useModalCompareContext()
-    let productMain = data.find(product => product.id === productId) as ProductType
-    if (productMain === undefined) {
-        productMain = data[0]
-    }
+    // const swiperRef: any = useRef();
+    // const [photoIndex, setPhotoIndex] = useState(0)
+    // const [openPopupImg, setOpenPopupImg] = useState(false)
+    // const [openSizeGuide, setOpenSizeGuide] = useState<boolean>(false)
+    // const [thumbsSwiper, setThumbsSwiper] = useState<SwiperCore | null>(null)
+    // const [activeColor, setActiveColor] = useState<string>('')
+    // const [activeSize, setActiveSize] = useState<string>('')
+    // const [activeTab, setActiveTab] = useState<string | undefined>('description')
+    // const { addToCart, updateCart, cartState } = useCart()
+    // const { openModalCart } = useModalCartContext()
+    // const { addToWishlist, removeFromWishlist, wishlistState } = useWishlist()
+    // const { openModalWishlist } = useModalWishlistContext()
+    // const { addToCompare, removeFromCompare, compareState } = useCompare();
+    // const { openModalCompare } = useModalCompareContext()
+    // let productMain = data.find(product => product.id === productId) as ProductType
+    // if (productMain === undefined) {
+    //     productMain = data[0]
+    // }
 
-    const percentSale = Math.floor(100 - ((productMain.price / productMain.originPrice) * 100))
+    // const percentSale = Math.floor(100 - ((productMain.price / productMain.originPrice) * 100))
 
-    const handleOpenSizeGuide = () => {
-        setOpenSizeGuide(true);
-    };
+    // const handleOpenSizeGuide = () => {
+    //     setOpenSizeGuide(true);
+    // };
 
-    const handleCloseSizeGuide = () => {
-        setOpenSizeGuide(false);
-    };
+    // const handleCloseSizeGuide = () => {
+    //     setOpenSizeGuide(false);
+    // };
 
-    const handleSwiper = (swiper: SwiperCore) => {
-        // Do something with the thumbsSwiper instance
-        setThumbsSwiper(swiper);
-    };
+    // const handleSwiper = (swiper: SwiperCore) => {
+    //     // Do something with the thumbsSwiper instance
+    //     setThumbsSwiper(swiper);
+    // };
 
-    const handleActiveColor = (item: string) => {
-        setActiveColor(item)
-    }
+    // const handleActiveColor = (item: string) => {
+    //     setActiveColor(item)
+    // }
 
-    const handleActiveSize = (item: string) => {
-        setActiveSize(item)
-    }
+    // const handleActiveSize = (item: string) => {
+    //     setActiveSize(item)
+    // }
 
-    const handleIncreaseQuantity = () => {
-        productMain.quantityPurchase += 1
-        updateCart(productMain.id, productMain.quantityPurchase + 1, activeSize, activeColor);
-    };
+    // const handleIncreaseQuantity = () => {
+    //     productMain.quantityPurchase += 1
+    //     updateCart(productMain.id, productMain.quantityPurchase + 1, activeSize, activeColor);
+    // };
 
-    const handleDecreaseQuantity = () => {
-        if (productMain.quantityPurchase > 1) {
-            productMain.quantityPurchase -= 1
-            updateCart(productMain.id, productMain.quantityPurchase - 1, activeSize, activeColor);
-        }
-    };
+    // const handleDecreaseQuantity = () => {
+    //     if (productMain.quantityPurchase > 1) {
+    //         productMain.quantityPurchase -= 1
+    //         updateCart(productMain.id, productMain.quantityPurchase - 1, activeSize, activeColor);
+    //     }
+    // };
 
-    const handleAddToCart = () => {
-        if (!cartState.cartArray.find(item => item.id === productMain.id)) {
-            addToCart({ ...productMain });
-            updateCart(productMain.id, productMain.quantityPurchase, activeSize, activeColor)
-        } else {
-            updateCart(productMain.id, productMain.quantityPurchase, activeSize, activeColor)
-        }
-        openModalCart()
-    };
-    const handleAddToWishlist = () => {
-        // if product existed in wishlit, remove from wishlist and set state to false
-        if (wishlistState.wishlistArray.some(item => item.id === productMain.id)) {
-            removeFromWishlist(productMain.id);
-        } else {
-            // else, add to wishlist and set state to true
-            addToWishlist(productMain);
-        }
-        openModalWishlist();
-    };
+    // const handleAddToCart = () => {
+    //     if (!cartState.cartArray.find(item => item.id === productMain.id)) {
+    //         addToCart({ ...productMain });
+    //         updateCart(productMain.id, productMain.quantityPurchase, activeSize, activeColor)
+    //     } else {
+    //         updateCart(productMain.id, productMain.quantityPurchase, activeSize, activeColor)
+    //     }
+    //     openModalCart()
+    // };
+    // const handleAddToWishlist = () => {
+    //     // if product existed in wishlit, remove from wishlist and set state to false
+    //     if (wishlistState.wishlistArray.some(item => item.id === productMain.id)) {
+    //         removeFromWishlist(productMain.id);
+    //     } else {
+    //         // else, add to wishlist and set state to true
+    //         addToWishlist(productMain);
+    //     }
+    //     openModalWishlist();
+    // };
 
-    const handleAddToCompare = () => {
-        // if product existed in wishlit, remove from wishlist and set state to false
-        if (compareState.compareArray.length < 3) {
-            if (compareState.compareArray.some(item => item.id === productMain.id)) {
-                removeFromCompare(productMain.id);
-            } else {
-                // else, add to wishlist and set state to true
-                addToCompare(productMain);
-            }
-        } else {
-            alert('Compare up to 3 products')
-        }
+    // const handleAddToCompare = () => {
+    //     // if product existed in wishlit, remove from wishlist and set state to false
+    //     if (compareState.compareArray.length < 3) {
+    //         if (compareState.compareArray.some(item => item.id === productMain.id)) {
+    //             removeFromCompare(productMain.id);
+    //         } else {
+    //             // else, add to wishlist and set state to true
+    //             addToCompare(productMain);
+    //         }
+    //     } else {
+    //         alert('Compare up to 3 products')
+    //     }
 
-        openModalCompare();
-    };
+    //     openModalCompare();
+    // };
 
-    const handleActiveTab = (tab: string) => {
-        setActiveTab(tab)
-    }
+    // const handleActiveTab = (tab: string) => {
+    //     setActiveTab(tab)
+    // }
 
     return (
         <>
             <div className="product-detail grouped">
-                <div className="featured-product underwear md:pt-8 md:pb-[60px] pt-6 pb-8 bg-linear">
+                {/* <div className="featured-product underwear md:pt-8 md:pb-[60px] pt-6 pb-8 bg-linear">
                     <div className="container flex justify-between gap-y-6 flex-wrap">
                         <div className="list-img md:w-1/2 md:pr-[45px] w-full">
                             <Swiper
@@ -877,7 +877,7 @@ const Discount: React.FC<Props> = ({ data, productId }) => {
                             ))}
                         </div>
                     </div>
-                </div>
+                </div> */}
             </div >
         </>
     )

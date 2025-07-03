@@ -31,7 +31,7 @@ const TabFeatures: React.FC<Props> = ({ data, start, limit }) => {
             return data
                 .filter((product) => (product.type === 'swimwear' || product.type === 'underwear') && product.category === 'fashion')
                 .slice()
-                .sort((a, b) => b.sold - a.sold)
+                // .sort((a, b) => b.sold - a.sold)
         }
 
         return data

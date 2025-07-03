@@ -11,6 +11,7 @@ import * as Icon from "@phosphor-icons/react/dist/ssr";
 import { useCart } from "@/context/CartContext";
 import { countdownTime } from "@/store/countdownTime";
 import toast from "react-hot-toast";
+import { BiRupee } from "react-icons/bi";
 
 const Cart = () => {
   const [timeLeft, setTimeLeft] = useState(countdownTime());
@@ -238,7 +239,7 @@ const Cart = () => {
                             {/* Price */}
                             <div className="w-[15%] lg:w-[12%] text-center">
                               <div className="text-sm lg:text-base text-gray-900">
-                                ${product.price || 0}.00
+                                <BiRupee /> {product.price || 0}.00
                               </div>
                             </div>
 
@@ -283,9 +284,7 @@ const Cart = () => {
                             {/* Total */}
                             <div className="w-[10%] lg:w-[10%] text-center">
                               <div className="text-sm lg:text-base font-medium text-gray-900">
-                                $
-                                {(product.quantity || 1) * (product.price || 0)}
-                                .00
+                                <BiRupee /> {(product.quantity || 1) * (product.price || 0)}
                               </div>
                             </div>
 

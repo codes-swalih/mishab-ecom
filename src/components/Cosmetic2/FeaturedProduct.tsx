@@ -35,36 +35,36 @@ const FeaturedProduct: React.FC<Props> = ({ data }) => {
         setThumbsSwiper(swiper);
     };
 
-    const handleIncreaseQuantity = () => {
-        productMain.quantityPurchase += 1
-        updateCart(productMain.id, productMain.quantityPurchase + 1, activeSize, '');
-    };
+    // const handleIncreaseQuantity = () => {
+    //     productMain.quantityPurchase += 1
+    //     updateCart(productMain.id, productMain.quantityPurchase + 1, activeSize, '');
+    // };
 
-    const handleDecreaseQuantity = () => {
-        if (productMain.quantityPurchase > 1) {
-            productMain.quantityPurchase -= 1
-            updateCart(productMain.id, productMain.quantityPurchase - 1, activeSize, '');
-        }
-    };
+    // const handleDecreaseQuantity = () => {
+    //     if (productMain.quantityPurchase > 1) {
+    //         productMain.quantityPurchase -= 1
+    //         updateCart(productMain.id, productMain.quantityPurchase - 1, activeSize, '');
+    //     }
+    // };
 
-    const handleAddToCart = () => {
-        if (!cartState.cartArray.find(item => item.id === productMain.id)) {
-            addToCart({ ...productMain });
-            updateCart(productMain.id, productMain.quantityPurchase, activeSize, '')
-        } else {
-            updateCart(productMain.id, productMain.quantityPurchase, activeSize, '')
-        }
-        openModalCart()
-    };
+    // const handleAddToCart = () => {
+    //     if (!cartState.cartArray.find(item => item.id === productMain.id)) {
+    //         addToCart({ ...productMain });
+    //         updateCart(productMain.id, productMain.quantityPurchase, activeSize, '')
+    //     } else {
+    //         updateCart(productMain.id, productMain.quantityPurchase, activeSize, '')
+    //     }
+    //     openModalCart()
+    // };
 
     // Infor product 49th in data
     const productMain = data[49];
-    const percentSale = Math.floor(100 - ((productMain.price / productMain.originPrice) * 100))
+    // const percentSale = Math.floor(100 - ((productMain.price / productMain.originPrice) * 100))
 
     return (
         <>
             <div className="featured-product cosmetic md:pt-20 pt-10">
-                <div className="container flex lg:items-center justify-between gap-y-6 flex-wrap">
+                {/* <div className="container flex lg:items-center justify-between gap-y-6 flex-wrap">
                     <div className="list-img md:w-1/2 md:pr-4 w-full">
                         <Swiper
                             slidesPerView={1}
@@ -163,7 +163,7 @@ const FeaturedProduct: React.FC<Props> = ({ data }) => {
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> */}
             </div>
         </>
     )

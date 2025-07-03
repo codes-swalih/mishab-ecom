@@ -22,36 +22,36 @@ const FeaturedProduct: React.FC<Props> = ({ data }) => {
         setActiveSize(item)
     }
 
-    const handleIncreaseQuantity = () => {
-        productMain.quantityPurchase += 1
-        updateCart(productMain.id, productMain.quantityPurchase + 1, activeSize, '');
-    };
+    // const handleIncreaseQuantity = () => {
+    //     productMain.quantityPurchase += 1
+    //     updateCart(productMain.id, productMain.quantityPurchase + 1, activeSize, '');
+    // };
 
-    const handleDecreaseQuantity = () => {
-        if (productMain.quantityPurchase > 1) {
-            productMain.quantityPurchase -= 1
-            updateCart(productMain.id, productMain.quantityPurchase - 1, activeSize, '');
-        }
-    };
+    // const handleDecreaseQuantity = () => {
+    //     if (productMain.quantityPurchase > 1) {
+    //         productMain.quantityPurchase -= 1
+    //         updateCart(productMain.id, productMain.quantityPurchase - 1, activeSize, '');
+    //     }
+    // };
 
-    const handleAddToCart = () => {
-        if (!cartState.cartArray.find(item => item.id === productMain.id)) {
-            addToCart({ ...productMain });
-            updateCart(productMain.id, productMain.quantityPurchase, activeSize, '')
-        } else {
-            updateCart(productMain.id, productMain.quantityPurchase, activeSize, '')
-        }
-        openModalCart()
-    };
+    // const handleAddToCart = () => {
+    //     if (!cartState.cartArray.find(item => item.id === productMain.id)) {
+    //         addToCart({ ...productMain });
+    //         updateCart(productMain.id, productMain.quantityPurchase, activeSize, '')
+    //     } else {
+    //         updateCart(productMain.id, productMain.quantityPurchase, activeSize, '')
+    //     }
+    //     openModalCart()
+    // };
 
-    // Truy cập thông tin của sản phẩm thứ 50 trong mảng data
-    const productMain = data[50];
-    const percentSale = Math.floor(100 - ((productMain.price / productMain.originPrice) * 100))
+    // // Truy cập thông tin của sản phẩm thứ 50 trong mảng data
+    // const productMain = data[50];
+    // const percentSale = Math.floor(100 - ((productMain.price / productMain.originPrice) * 100))
 
     return (
         <>
             <div className="featured-product cosmetic py-20 bg-surface">
-                <div className="container flex lg:items-center justify-between gap-y-6 flex-wrap">
+                {/* <div className="container flex lg:items-center justify-between gap-y-6 flex-wrap">
                     <div className="list-img md:w-1/2 md:pr-4 w-full">
                         <Image
                             src={productMain.images[1]}
@@ -121,7 +121,7 @@ const FeaturedProduct: React.FC<Props> = ({ data }) => {
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> */}
             </div>
         </>
     )

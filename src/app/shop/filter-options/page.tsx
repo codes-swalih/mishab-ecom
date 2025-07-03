@@ -19,7 +19,7 @@ export default function FilterOptions() {
             <div id="header" className='relative w-full'>
                 <MenuOne props="bg-transparent" />
             </div>
-            <ShopFilterOptions data={productData} productPerPage={12} />
+            {/* <ShopFilterOptions data={productData} productPerPage={12} /> */}
             <Footer />
         </>
     )

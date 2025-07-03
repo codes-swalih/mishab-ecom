@@ -102,7 +102,7 @@ export default function ProductDetailsSumary({
             Color
           </Typography>
           <Stack direction="row" spacing={1}>
-            {product.colors.map((color) => (
+            {product.colors.map((color: string) => (
               <Button
                 key={color}
                 className={`min-w-0 p-2 rounded-full border-2 ${
@@ -128,7 +128,7 @@ export default function ProductDetailsSumary({
             Size
           </Typography>
           <Stack direction="row" spacing={1}>
-            {product.sizes.map((size) => (
+            {product.sizes.map((size: string) => (
               <Button
                 key={size}
                 variant={selectedSize === size ? 'contained' : 'outlined'}

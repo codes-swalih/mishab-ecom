@@ -28,85 +28,85 @@ const ModalQuickview = () => {
     const { openModalWishlist } = useModalWishlistContext()
     const { addToCompare, removeFromCompare, compareState } = useCompare();
     const { openModalCompare } = useModalCompareContext()
-    const percentSale = selectedProduct && Math.floor(100 - ((selectedProduct.price / selectedProduct.originPrice) * 100))
+    // const percentSale = selectedProduct && Math.floor(100 - ((selectedProduct.price / selectedProduct.originPrice) * 100))
 
-    const handleOpenSizeGuide = () => {
-        setOpenSizeGuide(true);
-    };
+    // const handleOpenSizeGuide = () => {
+    //     setOpenSizeGuide(true);
+    // };
 
-    const handleCloseSizeGuide = () => {
-        setOpenSizeGuide(false);
-    };
+    // const handleCloseSizeGuide = () => {
+    //     setOpenSizeGuide(false);
+    // };
 
-    const handleActiveColor = (item: string) => {
-        setActiveColor(item)
-    }
+    // const handleActiveColor = (item: string) => {
+    //     setActiveColor(item)
+    // }
 
-    const handleActiveSize = (item: string) => {
-        setActiveSize(item)
-    }
+    // const handleActiveSize = (item: string) => {
+    //     setActiveSize(item)
+    // }
 
-    const handleIncreaseQuantity = () => {
-        if (selectedProduct) {
-            selectedProduct.quantityPurchase += 1
-            updateCart(selectedProduct.id, selectedProduct.quantityPurchase + 1, activeSize, activeColor);
-        }
-    };
+    // const handleIncreaseQuantity = () => {
+    //     if (selectedProduct) {
+    //         selectedProduct.quantityPurchase += 1
+    //         updateCart(selectedProduct.id, selectedProduct.quantityPurchase + 1, activeSize, activeColor);
+    //     }
+    // };
 
-    const handleDecreaseQuantity = () => {
-        if (selectedProduct && selectedProduct.quantityPurchase > 1) {
-            selectedProduct.quantityPurchase -= 1
-            updateCart(selectedProduct.id, selectedProduct.quantityPurchase - 1, activeSize, activeColor);
-        }
-    };
+    // const handleDecreaseQuantity = () => {
+    //     if (selectedProduct && selectedProduct.quantityPurchase > 1) {
+    //         selectedProduct.quantityPurchase -= 1
+    //         updateCart(selectedProduct.id, selectedProduct.quantityPurchase - 1, activeSize, activeColor);
+    //     }
+    // };
 
-    const handleAddToCart = () => {
-        if (selectedProduct) {
-            if (!cartState.cartArray.find(item => item.id === selectedProduct.id)) {
-                addToCart({ ...selectedProduct });
-                updateCart(selectedProduct.id, selectedProduct.quantityPurchase, activeSize, activeColor)
-            } else {
-                updateCart(selectedProduct.id, selectedProduct.quantityPurchase, activeSize, activeColor)
-            }
-            openModalCart()
-            closeQuickview()
-        }
-    };
+    // const handleAddToCart = () => {
+    //     if (selectedProduct) {
+    //         if (!cartState.cartArray.find(item => item.id === selectedProduct.id)) {
+    //             addToCart({ ...selectedProduct });
+    //             updateCart(selectedProduct.id, selectedProduct.quantityPurchase, activeSize, activeColor)
+    //         } else {
+    //             updateCart(selectedProduct.id, selectedProduct.quantityPurchase, activeSize, activeColor)
+    //         }
+    //         openModalCart()
+    //         closeQuickview()
+    //     }
+    // };
 
-    const handleAddToWishlist = () => {
-        // if product existed in wishlit, remove from wishlist and set state to false
-        if (selectedProduct) {
-            if (wishlistState.wishlistArray.some(item => item.id === selectedProduct.id)) {
-                removeFromWishlist(selectedProduct.id);
-            } else {
-                // else, add to wishlist and set state to true
-                addToWishlist(selectedProduct);
-            }
-        }
-        openModalWishlist();
-    };
+    // const handleAddToWishlist = () => {
+    //     // if product existed in wishlit, remove from wishlist and set state to false
+    //     if (selectedProduct) {
+    //         if (wishlistState.wishlistArray.some(item => item.id === selectedProduct.id)) {
+    //             removeFromWishlist(selectedProduct.id);
+    //         } else {
+    //             // else, add to wishlist and set state to true
+    //             addToWishlist(selectedProduct);
+    //         }
+    //     }
+    //     openModalWishlist();
+    // };
 
-    const handleAddToCompare = () => {
-        // if product existed in wishlit, remove from wishlist and set state to false
-        if (selectedProduct) {
-            if (compareState.compareArray.length < 3) {
-                if (compareState.compareArray.some(item => item.id === selectedProduct.id)) {
-                    removeFromCompare(selectedProduct.id);
-                } else {
-                    // else, add to wishlist and set state to true
-                    addToCompare(selectedProduct);
-                }
-            } else {
-                alert('Compare up to 3 products')
-            }
-        }
-        openModalCompare();
-    };
+    // const handleAddToCompare = () => {
+    //     // if product existed in wishlit, remove from wishlist and set state to false
+    //     if (selectedProduct) {
+    //         if (compareState.compareArray.length < 3) {
+    //             if (compareState.compareArray.some(item => item.id === selectedProduct.id)) {
+    //                 removeFromCompare(selectedProduct.id);
+    //             } else {
+    //                 // else, add to wishlist and set state to true
+    //                 addToCompare(selectedProduct);
+    //             }
+    //         } else {
+    //             alert('Compare up to 3 products')
+    //         }
+    //     }
+    //     openModalCompare();
+    // };
 
     return (
         <>
             <div className={`modal-quickview-block`} onClick={closeQuickview}>
-                <div
+                {/* <div
                     className={`modal-quickview-main py-6 ${selectedProduct !== null ? 'open' : ''}`}
                     onClick={(e) => { e.stopPropagation() }}
                 >
@@ -356,7 +356,7 @@ const ModalQuickview = () => {
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> */}
             </div>
 
         </>

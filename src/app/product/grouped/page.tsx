@@ -23,7 +23,7 @@ const ProductGrouped = () => {
                 <MenuOne props="bg-white" />
                 <BreadcrumbProduct data={productData} productPage='grouped' productId={productId} />
             </div>
-            <Grouped data={productData} productId={productId} />
+            {/* <Grouped data={productData} productId={productId} /> */}
             <Footer />
         </>
     )

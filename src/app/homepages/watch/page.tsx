@@ -27,7 +27,7 @@ export default function HomeWatch() {
                 <Category />
                 <TabFeature data={productData} start={0} limit={5} />
                 <Banner />
-                <FeaturedProduct data={productData} />
+                {/* <FeaturedProduct data={productData} /> */}
                 <TrendingProduct data={productData} />
                 <PopularProduct />
                 <Benefit props="md:py-[60px] py-8 style-watch md:mt-20 mt-10" />

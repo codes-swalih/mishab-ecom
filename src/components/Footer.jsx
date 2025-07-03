@@ -36,7 +36,7 @@ function Footer() {
           <div className=" flex flex-col gap-2 w-2/3 text-sm">
             <Image
               src="/images/logo.png"
-              className=" -mt-36"
+              className=" -mt-36 md:-mt-24"
               alt="logo"
               width={200}
               height={0}

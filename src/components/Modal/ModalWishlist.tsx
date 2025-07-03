@@ -14,7 +14,7 @@ const ModalWishlist = () => {
     return (
         <>
             <div className={`modal-wishlist-block`} onClick={closeModalWishlist}>
-                <div
+                {/* <div
                     className={`modal-wishlist-main py-6 ${isModalOpen ? 'open' : ''}`}
                     onClick={(e) => { e.stopPropagation() }}
                 >
@@ -58,7 +58,7 @@ const ModalWishlist = () => {
                         <Link href={'/wishlist'} onClick={closeModalWishlist} className='button-main w-full text-center uppercase'>View All Wish List</Link>
                         <div onClick={closeModalWishlist} className="text-button-uppercase mt-4 text-center has-line-before cursor-pointer inline-block">Or continue shopping</div>
                     </div>
-                </div>
+                </div> */}
             </div>
         </>
     )

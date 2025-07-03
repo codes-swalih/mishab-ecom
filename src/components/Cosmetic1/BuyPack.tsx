@@ -14,24 +14,24 @@ const BuyPack = () => {
     const { addToCart, updateCart, cartState } = useCart();
     const { openModalCart } = useModalCartContext()
 
-    const handleAddToCart = () => {
-        if (!cartState.cartArray.find(item => item.id === '43')) {
-            addToCart(productData.find(item => item.id === '43') as ProductType)
-            updateCart('43', 1, '', '')
-        }
+    // const handleAddToCart = () => {
+    //     if (!cartState.cartArray.find(item => item.id === '43')) {
+    //         addToCart(productData.find(item => item.id === '43') as ProductType)
+    //         updateCart('43', 1, '', '')
+    //     }
 
-        if (!cartState.cartArray.find(item => item.id === '44')) {
-            addToCart(productData.find(item => item.id === '44') as ProductType)
-            updateCart('44', 1, '', '')
-        }
+    //     if (!cartState.cartArray.find(item => item.id === '44')) {
+    //         addToCart(productData.find(item => item.id === '44') as ProductType)
+    //         updateCart('44', 1, '', '')
+    //     }
 
-        if (!cartState.cartArray.find(item => item.id === '42')) {
-            addToCart(productData.find(item => item.id === '42') as ProductType)
-            updateCart('42', 1, '', '')
-        }
+    //     if (!cartState.cartArray.find(item => item.id === '42')) {
+    //         addToCart(productData.find(item => item.id === '42') as ProductType)
+    //         updateCart('42', 1, '', '')
+    //     }
 
-        openModalCart()
-    };
+    //     openModalCart()
+    // };
 
     const handleDetailProduct = (productId: string) => {
         // redirect to shop with category selected
@@ -107,7 +107,7 @@ const BuyPack = () => {
                         <div className="block-button mt-8">
                             <div
                                 className="button-main w-full text-center"
-                                onClick={handleAddToCart}
+                                // onClick={handleAddToCart}
                             >
                                 add set to cart
                             </div>

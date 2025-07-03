@@ -23,7 +23,7 @@ const ProductCombinedOne = () => {
                 <MenuOne props="bg-white" />
                 <BreadcrumbProduct data={productData} productPage='variable' productId={productId} />
             </div>
-            <VariableProduct data={productData} productId={productId} />
+            {/* <VariableProduct data={productData} productId={productId} /> */}
             <Footer />
         </>
     )

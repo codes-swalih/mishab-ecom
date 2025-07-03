@@ -36,55 +36,55 @@ const BestSaleProduct: React.FC<Props> = ({ data }) => {
         setOpenSizeGuide(false);
     };
 
-    const handleActiveColor = (item: string) => {
-        setActiveColor(item)
+    // const handleActiveColor = (item: string) => {
+    //     setActiveColor(item)
 
-        // Find variation with selected color
-        const foundColor = productMain.variation.find((variation) => variation.color === item);
-        // If found, slide next to img
-        if (foundColor) {
-            const index = productMain.images.indexOf(foundColor.image);
+    //     // Find variation with selected color
+    //     const foundColor = productMain.variation.find((variation) => variation.color === item);
+    //     // If found, slide next to img
+    //     if (foundColor) {
+    //         const index = productMain.images.indexOf(foundColor.image);
 
-            if (index !== -1) {
-                swiperRef.current?.slideTo(index);
-            }
-        }
-    }
+    //         if (index !== -1) {
+    //             swiperRef.current?.slideTo(index);
+    //         }
+    //     }
+    // }
 
-    const handleActiveSize = (item: string) => {
-        setActiveSize(item)
-    }
+    // const handleActiveSize = (item: string) => {
+    //     setActiveSize(item)
+    // }
 
-    const handleIncreaseQuantity = () => {
-        productMain.quantityPurchase += 1
-        updateCart(productMain.id, productMain.quantityPurchase + 1, activeSize, activeColor);
-    };
+    // const handleIncreaseQuantity = () => {
+    //     productMain.quantityPurchase += 1
+    //     updateCart(productMain.id, productMain.quantityPurchase + 1, activeSize, activeColor);
+    // };
 
-    const handleDecreaseQuantity = () => {
-        if (productMain.quantityPurchase > 1) {
-            productMain.quantityPurchase -= 1
-            updateCart(productMain.id, productMain.quantityPurchase - 1, activeSize, activeColor);
-        }
-    };
+    // const handleDecreaseQuantity = () => {
+    //     if (productMain.quantityPurchase > 1) {
+    //         productMain.quantityPurchase -= 1
+    //         updateCart(productMain.id, productMain.quantityPurchase - 1, activeSize, activeColor);
+    //     }
+    // };
 
-    const handleAddToCart = () => {
-        if (!cartState.cartArray.find(item => item.id === productMain.id)) {
-            addToCart({ ...productMain });
-            updateCart(productMain.id, productMain.quantityPurchase, activeSize, activeColor)
-        } else {
-            updateCart(productMain.id, productMain.quantityPurchase, activeSize, activeColor)
-        }
-        openModalCart()
-    };
+    // const handleAddToCart = () => {
+    //     if (!cartState.cartArray.find(item => item.id === productMain.id)) {
+    //         addToCart({ ...productMain });
+    //         updateCart(productMain.id, productMain.quantityPurchase, activeSize, activeColor)
+    //     } else {
+    //         updateCart(productMain.id, productMain.quantityPurchase, activeSize, activeColor)
+    //     }
+    //     openModalCart()
+    // };
 
-    // Infor's product 13th in data
-    const productMain = data[12];
-    const percentSale = Math.floor(100 - ((productMain.price / productMain.originPrice) * 100))
+    // // Infor's product 13th in data
+    // const productMain = data[12];
+    // const percentSale = Math.floor(100 - ((productMain.price / productMain.originPrice) * 100))
 
     return (
         <>
             <div className="best-sale-prd bg-surface md:py-20 py-10 md:mt-20 mt-10">
-                <div className="container flex justify-between gap-y-6 flex-wrap">
+                {/* <div className="container flex justify-between gap-y-6 flex-wrap">
                     <div className="list-img lg:w-2/3 w-full">
                         <Swiper
                             spaceBetween={12}
@@ -232,7 +232,7 @@ const BestSaleProduct: React.FC<Props> = ({ data }) => {
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> */}
             </div>
         </>
     )

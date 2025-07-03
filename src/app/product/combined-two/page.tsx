@@ -23,7 +23,7 @@ const ProductCombinedTwo = () => {
                 <MenuOne props="bg-white" />
                 <BreadcrumbProduct data={productData} productPage='external' productId={productId} />
             </div>
-            <External data={productData} productId={productId} />
+            {/* <External data={productData} productId={productId} /> */}
             <Footer />
         </>
     )

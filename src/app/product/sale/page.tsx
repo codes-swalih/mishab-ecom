@@ -25,7 +25,7 @@ const ProductSale = () => {
                 <MenuOne props="bg-white" />
                 <BreadcrumbProduct data={productData} productPage='sale' productId={productId} />
             </div>
-            <Sale data={productData} productId={productId} />
+            {/* <Sale data={productData} productId={productId} /> */}
             <Footer />
         </>
     )

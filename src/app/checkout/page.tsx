@@ -22,7 +22,7 @@ const Checkout = () => {
     let [totalCart, setTotalCart] = useState<number>(0)
     const [activePayment, setActivePayment] = useState<string>('credit-card')
 
-    cartState.cartArray.map(item => totalCart += item.price * item.quantity)
+    cartState.cartArray.map(item => totalCart += item.price || 0 * item.quantity)
 
     const handlePayment = (item: string) => {
         setActivePayment(item)
@@ -221,7 +221,7 @@ const Checkout = () => {
                             </div>
 
                         </div>
-                        <div className="right w-5/12">
+                        {/* <div className="right w-5/12">
                             <div className="checkout-block">
                                 <div className="heading5 pb-3">Your Order</div>
                                 <div className="list-product-checkout">
@@ -233,7 +233,7 @@ const Checkout = () => {
                                                 <div className="item flex items-center justify-between w-full pb-5 border-b border-line gap-6 mt-5">
                                                     <div className="bg-img w-[100px] aspect-square flex-shrink-0 rounded-lg overflow-hidden">
                                                         <Image
-                                                            src={product.thumbImage[0]}
+                                                            src={product.thumbImage[0] || ""}
                                                             width={500}
                                                             height={500}
                                                             alt='img'
@@ -275,7 +275,7 @@ const Checkout = () => {
                                     <div className="heading5 total-cart">${totalCart - Number(discount) + Number(ship)}.00</div>
                                 </div>
                             </div>
-                        </div>
+                        </div> */}
                     </div>
                 </div>
             </div>

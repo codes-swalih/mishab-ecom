@@ -23,7 +23,7 @@ const ProductOutOfStock = () => {
                 <MenuOne props="bg-white" />
                 <BreadcrumbProduct data={productData} productPage='out-of-stock' productId={productId} />
             </div>
-            <OutOfStock data={productData} productId={productId} />
+            {/* <OutOfStock data={productData} productId={productId} /> */}
             <Footer />
         </>
     )

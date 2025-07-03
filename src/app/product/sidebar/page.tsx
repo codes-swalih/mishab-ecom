@@ -25,7 +25,7 @@ const ProductSidebar = () => {
                 <MenuOne props="bg-white" />
                 <BreadcrumbProduct data={productData} productPage='sidebar' productId={productId} />
             </div>
-            <Sidebar data={productData} productId={productId} />
+            {/* <Sidebar data={productData} productId={productId} /> */}
             <Footer />
         </>
     )

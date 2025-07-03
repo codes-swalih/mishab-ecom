@@ -20,7 +20,7 @@ export default function DefaultGrid() {
             <div id="header" className='relative w-full'>
                 <MenuOne props="bg-transparent" />
             </div>
-            <ShopBreadCrumb1 data={productData} productPerPage={9} dataType={type} gender={gender} category={category} />
+            {/* <ShopBreadCrumb1 data={productData} productPerPage={9} dataType={type} gender={gender} category={category} /> */}
             <Footer />      
         </>
     )

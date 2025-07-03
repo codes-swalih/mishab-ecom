@@ -72,48 +72,48 @@ const Wishlist = () => {
     }
 
     // Tạo một bản sao của mảng đã lọc để sắp xếp
-    let sortedData = [...filteredData];
+    // let sortedData = [...filteredData];
 
-    if (sortOption === 'soldQuantityHighToLow') {
-        filteredData = sortedData.sort((a, b) => b.sold - a.sold)
-    }
+    // if (sortOption === 'soldQuantityHighToLow') {
+    //     filteredData = sortedData.sort((a, b) => b.sold - a.sold)
+    // }
 
-    if (sortOption === 'discountHighToLow') {
-        filteredData = sortedData
-            .sort((a, b) => (
-                (Math.floor(100 - ((b.price / b.originPrice) * 100))) - (Math.floor(100 - ((a.price / a.originPrice) * 100)))
-            ))
-    }
+    // if (sortOption === 'discountHighToLow') {
+    //     filteredData = sortedData
+    //         .sort((a, b) => (
+    //             (Math.floor(100 - ((b.price / b.originPrice) * 100))) - (Math.floor(100 - ((a.price / a.originPrice) * 100)))
+    //         ))
+    // }
 
-    if (sortOption === 'priceHighToLow') {
-        filteredData = sortedData.sort((a, b) => b.price - a.price)
-    }
+    // if (sortOption === 'priceHighToLow') {
+    //     filteredData = sortedData.sort((a, b) => b.price - a.price)
+    // }
 
-    if (sortOption === 'priceLowToHigh') {
-        filteredData = sortedData.sort((a, b) => a.price - b.price)
-    }
+    // if (sortOption === 'priceLowToHigh') {
+    //     filteredData = sortedData.sort((a, b) => a.price - b.price)
+    // }
 
 
-    // Find page number base on filteredData
-    const pageCount = Math.ceil(filteredData.length / productsPerPage);
+    // // Find page number base on filteredData
+    // const pageCount = Math.ceil(filteredData.length / productsPerPage);
 
-    // If page number 0, set current page = 0
-    if (pageCount === 0) {
-        setCurrentPage(0);
-    }
+    // // If page number 0, set current page = 0
+    // if (pageCount === 0) {
+    //     setCurrentPage(0);
+    // }
 
-    // Get product data for current page
-    let currentProducts: ProductType[];
+    // // Get product data for current page
+    // let currentProducts: ProductType[];
 
-    if (filteredData.length > 0) {
-        currentProducts = filteredData.slice(offset, offset + productsPerPage);
-    } else {
-        currentProducts = []
-    }
+    // if (filteredData.length > 0) {
+    //     currentProducts = filteredData.slice(offset, offset + productsPerPage);
+    // } else {
+    //     currentProducts = []
+    // }
 
-    const handlePageChange = (selected: number) => {
-        setCurrentPage(selected);
-    };
+    // const handlePageChange = (selected: number) => {
+    //     setCurrentPage(selected);
+    // };
 
 
     return (
@@ -123,7 +123,7 @@ const Wishlist = () => {
                 <MenuOne props="bg-transparent" />
                 <Breadcrumb heading='Wish list' subHeading='Wish list' />
             </div>
-            <div className="shop-product breadcrumb1 lg:py-20 md:py-14 py-10">
+            {/* <div className="shop-product breadcrumb1 lg:py-20 md:py-14 py-10">
                 <div className="container">
                     <div className="list-product-block relative">
                         <div className="filter-heading flex items-center justify-between gap-5 flex-wrap">
@@ -252,7 +252,7 @@ const Wishlist = () => {
                         )}
                     </div>
                 </div>
-            </div>
+            </div> */}
             <Footer />
         </>
     )

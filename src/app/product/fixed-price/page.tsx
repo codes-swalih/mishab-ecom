@@ -23,7 +23,7 @@ const ProductFixedPrice = () => {
                 <MenuOne props="bg-white" />
                 <BreadcrumbProduct data={productData} productPage='fixed-price' productId={productId} />
             </div>
-            <FixedPrice data={productData} productId={productId} />
+            {/* <FixedPrice data={productData} productId={productId} /> */}
             <Footer />
         </>
     )

@@ -27,11 +27,17 @@ const ModalCart = ({ serverTimeLeft }: { serverTimeLeft: CountdownTimeType }) =>
     const { cartState, addToCart, removeFromCart, updateCart } = useCart()
 
     const handleAddToCart = (productItem: ProductType) => {
+        const formattedProduct = {
+            ...productItem,
+            image: typeof productItem.image === 'string' ? productItem.image : 
+                   (productItem.image?.url ? productItem.image.url : undefined)
+        };
+        
         if (!cartState.cartArray.find(item => item.id === productItem.id)) {
-            addToCart({ ...productItem });
-            updateCart(productItem.id, productItem.quantityPurchase, '', '')
+            addToCart(formattedProduct);
+            updateCart(productItem.id || '', productItem.quantityPurchase || 1, '', '')
         } else {
-            updateCart(productItem.id, productItem.quantityPurchase, '', '')
+            updateCart(productItem.id || '', productItem.quantityPurchase || 1, '', '')
         }
     };
 
@@ -43,12 +49,12 @@ const ModalCart = ({ serverTimeLeft }: { serverTimeLeft: CountdownTimeType }) =>
     let [totalCart, setTotalCart] = useState<number>(0)
     let [discountCart, setDiscountCart] = useState<number>(0)
 
-    cartState.cartArray.map(item => totalCart += item.price * item.quantity)
+    cartState.cartArray.map(item => totalCart += item.price || 0 * item.quantity)
 
     return (
         <>
             <div className={`modal-cart-block`} onClick={closeModalCart}>
-                <div
+                {/* <div
                     className={`modal-cart-main flex ${isModalOpen ? 'open' : ''}`}
                     onClick={(e) => { e.stopPropagation() }}
                 >
@@ -287,7 +293,7 @@ const ModalCart = ({ serverTimeLeft }: { serverTimeLeft: CountdownTimeType }) =>
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> */}
             </div>
         </>
     )

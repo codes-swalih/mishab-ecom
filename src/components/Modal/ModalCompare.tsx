@@ -14,7 +14,7 @@ const ModalCompare = () => {
     return (
         <>
             <div className={`modal-compare-block`}>
-                <div
+                {/* <div
                     className={`modal-compare-main py-6 ${isModalOpen ? 'open' : ''}`}
                     onClick={(e) => { e.stopPropagation() }}
                 >
@@ -84,7 +84,7 @@ const ModalCompare = () => {
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> */}
             </div >
         </>
     )

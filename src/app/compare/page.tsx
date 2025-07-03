@@ -22,10 +22,10 @@ const Compare = () => {
 
     const handleAddToCart = (productItem: ProductType) => {
         if (!cartState.cartArray.find(item => item.id === productItem.id)) {
-            addToCart({ ...productItem });
-            updateCart(productItem.id, productItem.quantityPurchase, '', '')
+            // addToCart({ ...productItem });
+            updateCart(productItem.id || "", productItem.quantityPurchase || 0, '', '')
         } else {
-            updateCart(productItem.id, productItem.quantityPurchase, '', '')
+            updateCart(productItem.id || "", productItem.quantityPurchase || 0, '', '')
         }
         openModalCart()
     };
@@ -38,7 +38,7 @@ const Compare = () => {
                 <Breadcrumb heading='Compare Products' subHeading='Compare Products' />
             </div>
             <div className="compare-block md:py-20 py-10">
-                <div className="container">
+                {/* <div className="container">
                     <div className="content-main">
                         <div>
                             <div className="list-product flex">
@@ -48,10 +48,10 @@ const Compare = () => {
                                         <div className="product-item px-10 pt-6 pb-5 border-r border-line" key={item.id}>
                                             <div className="bg-img w-full aspect-[3/4] rounded-lg overflow-hidden flex-shrink-0">
                                                 <Image
-                                                    src={item.images[0]}
+                                                    src={item.images?.[0]}
                                                     width={1000}
                                                     height={1500}
-                                                    alt={item.images[0]}
+                                                    alt={item.images?.[0]}
                                                     className='w-full h-full object-cover'
                                                 />
                                             </div>
@@ -160,7 +160,7 @@ const Compare = () => {
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> */}
             </div>
             <Footer />
         </>
