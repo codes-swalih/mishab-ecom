@@ -14,10 +14,10 @@ export default function Home() {
   return (
     <div className=" w-full flex justify-center  ">
       <div className=" w-full flex flex-col  md:gap-16 ">
-        <TopNavOne
+        {/* <TopNavOne
           props="style-one bg-black"
           slogan="New customers save 10% with the code GET10"
-        />
+        /> */}
         <div id="header" className="relative w-full">
           <MenuOne props="bg-white" />
         </div>
@@ -29,8 +29,8 @@ export default function Home() {
           <FeaturedSection />
           <LatestPoroducts />
           <Ads />
-          <Footer />
         </div>
+        <Footer />
       </div>
     </div>
   );

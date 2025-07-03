@@ -1,23 +1,119 @@
 import Link from "next/link";
-import React from "react";
+import PropTypes from "prop-types";
+import {
+  Typography,
+  CardActionArea,
+  Card,
+  Box,
+  Skeleton,
+  Stack,
+} from "@mui/material";
+import Image from "src/components/blurImage";
 
-function CategoryCard({ image, title }) {
+export default function CategoryCard({ category, isLoading }) {
+  // Updated link to use our new breadcrumb-img page with category parameter
+  const baseUrl = "/shop/breadcrumb-img?category=";
+  const hasImage = category && category.cover && category.cover.url;
+  const hasBlur = hasImage && category.cover.blurDataURL;
+
   return (
-    <Link href={"/shop/breadcrumb-img"}>
-      <div className=" flex flex-col gap-2 items-center ">
-        <div className=" w-full h-28  md:w-48 md:h-52 rounded-md md:rounded-xl bg-white flex items-center justify-center relative shadow-md ">
-          <img
-            src={image}
-            alt=""
-            className=" md:w-32 md:h-32 w-1/2 h-1/2 object-cover rounded-md md:rounded-xl "
+    <Stack spacing={1} alignItems="center">
+      <Card
+        sx={{
+          borderRadius: "50%",
+          borderWidth: "3px !important",
+          transform: "scale(1.0)",
+          transition: "all 0.2s ease-in-out",
+          width: { xs: 90, md: 175 },
+          height: { xs: 90, md: 175 },
+          border: isLoading && "none !important",
+          "&:hover": {
+            color: "#000",
+            borderColor: (theme) => theme.palette.primary.main + "!important",
+            transform: "scale(1.05)",
+          },
+          "& .image-wrapper": {
+            position: "relative",
+            width: "100%",
+            img: {
+              borderRadius: "50%",
+            },
+            "&:after": {
+              content: `""`,
+              display: "block",
+              paddingBottom: "100%",
+            },
+          },
+        }}
+      >
+        {isLoading ? (
+          <Skeleton
+            variant="circular"
+            sx={{
+              position: "absolute",
+              height: "100%",
+              width: "100%",
+            }}
           />
-          <div className=" absolute w-full h-full flex items-end  bottom-2 left-0  justify-center">
-            <h1 className=" font-bold  text-[13px]  md:text-sm ">{title}</h1>
-          </div>
-        </div>
-      </div>
-    </Link>
+        ) : (
+          <CardActionArea
+            className="card-action-area"
+            component={Link}
+            href={`${baseUrl + category?.slug}`}
+          >
+            <Box
+              p={0.4}
+              sx={{ bgcolor: (theme) => theme.palette.background.default }}
+            >
+              <Box className="image-wrapper">
+                {hasImage ? (
+                  <Image
+                    alt={category?.name || "category"}
+                    src={category.cover.url}
+                    placeholder={hasBlur ? "blur" : undefined}
+                    blurDataURL={hasBlur ? category.cover.blurDataURL : undefined}
+                    layout="fill"
+                    objectFit="cover"
+                    static
+                    draggable="false"
+                    quality={5}
+                    sizes={"50vw"}
+                  />
+                ) : (
+                  <Skeleton variant="circular" width="100%" height="100%" />
+                )}
+              </Box>
+            </Box>
+          </CardActionArea>
+        )}
+      </Card>
+      <Typography
+        {...(!isLoading && category && {
+          component: Link,
+          href: baseUrl + category.slug,
+        })}
+        color="text.primary"
+        variant="subtitle1"
+        textAlign="center"
+        noWrap
+        width={{ xs: 90, md: 175 }}
+        className="title"
+        sx={{ py: 0.5, textTransform: "capitalize" }}
+      >
+        {isLoading ? <Skeleton variant="text" width={100} /> : category?.name}
+      </Typography>
+    </Stack>
   );
 }
 
-export default CategoryCard;
+CategoryCard.propTypes = {
+  isLoading: PropTypes.bool.isRequired,
+  category: PropTypes.shape({
+    slug: PropTypes.string,
+    cover: PropTypes.shape({
+      url: PropTypes.string,
+      blurDataURL: PropTypes.string,
+    }),
+    name: PropTypes.string,
+  }),
+};

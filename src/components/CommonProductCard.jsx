@@ -12,21 +12,24 @@ function CommonProductCard({
   cutOffPrice,
   rating,
   reviews,
+  slug,
 }) {
+  // Support image as object (with .url) or string
+  const imageUrl = image?.url || image;
   return (
-    <Link href={"/product/default"}>
-      <div className=" flex flex-col flex-shrink-0 bg-white  md:bg-transparent gap-4 rounded-xl ">
+    <Link href={`/product/${slug || ''}`} prefetch={false}>
+      <div className=" flex flex-col flex-shrink-0 bg-white py-2 px-2  md:bg-transparent gap-4 rounded-xl border border-gray-200 hover:border-gray-400 ">
         <div className=" w-full h-24 flex items-center justify-center md:h-72 bg-white rounded-xl ">
           <img
-            src={image}
-            className=" w-4/5 h-5/5 md:w-3/5 md:h-3/5 object-cover rounded-xl"
-            alt=""
+            src={imageUrl}
+            className=" w-full h-24 md:h-full object-cover rounded-xl"
+            alt={title || "Product image"}
           />
         </div>
-        <div className=" flex flex-col gap-3 md:gap-5 px-2 md:px-0 pb-2 md:py-0  ">
+        <div className=" flex flex-col gap-3 md:gap-5 px-2 md:px-0 pb-2 md:py-0   ">
           <div className=" md:flex items-end justify-between">
             <div className=" flex flex-col gap-1 ">
-              <h1 className=" font-semibold text-xs md:text-base">{title}</h1>
+              <h1 className=" font-semibold line-clamp-2 text-xs md:text-base">{title}</h1>
               <div className=" flex items-center gap-2 font-semibold">
                 <h1 className=" flex items-center gap-0 text-gray-600 text-md md:text-base">
                   <MdCurrencyRupee />

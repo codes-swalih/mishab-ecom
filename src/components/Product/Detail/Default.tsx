@@ -1,13 +1,20 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import RelatedProducts from "./RelatedProducts";
 import { ProductType } from "@/type/ProductType";
 import Product from "../Product";
 import Rate from "@/components/Other/Rate";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Thumbs, Scrollbar } from "swiper/modules";
+import {
+  Navigation,
+  Scrollbar,
+  Pagination,
+  FreeMode,
+  Thumbs,
+} from "swiper/modules";
 import "swiper/css/bundle";
 import * as Icon from "@phosphor-icons/react/dist/ssr";
 import SwiperCore from "swiper/core";
@@ -18,12 +25,45 @@ import { useModalWishlistContext } from "@/context/ModalWishlistContext";
 import { useCompare } from "@/context/CompareContext";
 import { useModalCompareContext } from "@/context/ModalCompareContext";
 import ModalSizeguide from "@/components/Modal/ModalSizeguide";
-
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 SwiperCore.use([Navigation, Thumbs]);
 
+interface VariationType {
+  id?: string;
+  _id?: string;
+  image?: string;
+  color?: string;
+}
+
+// Extend the ProductType for our API-specific fields
+interface ExtendedProductType extends ProductType {
+  description_points?: string[];
+  rate?: number;
+  review_count?: number;
+  material?: string;
+  brand?: string | { _id: string; name: string };
+  _id: string;
+  name: string;
+  reviews?: any[];
+  stock?: number;
+  price?: number;
+  quantityPurchase?: number;
+  thumb?: string;
+  colors?: string[];
+  sizes?: string[];
+  images?: string[];
+  variation?: VariationType[];
+  originPrice?: number;
+  priceSale?: number;
+  id?: string;
+  available?: number;
+  
+}
+
 interface Props {
-  data: Array<ProductType>;
-  productId: string | number | null;
+  data: ExtendedProductType[];
+  productId: string;
 }
 
 const Default: React.FC<Props> = ({ data, productId }) => {
@@ -35,22 +75,50 @@ const Default: React.FC<Props> = ({ data, productId }) => {
   const [activeColor, setActiveColor] = useState<string>("");
   const [activeSize, setActiveSize] = useState<string>("");
   const [activeTab, setActiveTab] = useState<string | undefined>("description");
+  const [priceFinal, setPriceFinal] = useState(0);
+  const [priceOld, setPriceOld] = useState(0);
   const { addToCart, updateCart, cartState } = useCart();
   const { openModalCart } = useModalCartContext();
   const { addToWishlist, removeFromWishlist, wishlistState } = useWishlist();
   const { openModalWishlist } = useModalWishlistContext();
   const { addToCompare, removeFromCompare, compareState } = useCompare();
   const { openModalCompare } = useModalCompareContext();
+  const router = useRouter();
+
+  // Find product matching productID
   let productMain = data.find(
-    (product) => product.id === productId
-  ) as ProductType;
+    (product) =>
+      String(product.id) === productId || String(product._id) === productId
+  ) as ExtendedProductType;
+  // Fallback to first product if no match found
   if (productMain === undefined) {
-    productMain = data[0];
+    productMain = data[0] as ExtendedProductType;
   }
 
-  const percentSale = Math.floor(
-    100 - (productMain?.price / productMain?.originPrice) * 100
-  );
+  // Initialize quantityPurchase if it doesn't exist
+  if (productMain.quantityPurchase === undefined) {
+    productMain.quantityPurchase = 1;
+  }
+
+  useEffect(() => {
+    // Safely handle price values with fallbacks to prevent undefined errors
+    const safePrice = productMain.price || 0;
+    
+    if (productMain.originPrice) {
+      setPriceOld(productMain.originPrice);
+    } else if (activeColor && productMain.priceSale) {
+      setPriceOld(safePrice);
+      setPriceFinal(productMain.priceSale);
+    } else {
+      setPriceFinal(safePrice);
+    }
+  }, [activeColor, activeSize, productMain]);
+
+  const percentSale = productMain?.originPrice
+    ? Math.floor(100 - ((productMain?.price || 0)  / productMain?.originPrice) * 100)
+    : productMain?.priceSale
+    ? Math.floor(100 - (productMain?.priceSale / (productMain?.price || 1)) * 100)
+    : 0;
 
   const handleOpenSizeGuide = () => {
     setOpenSizeGuide(true);
@@ -85,21 +153,26 @@ const Default: React.FC<Props> = ({ data, productId }) => {
   };
 
   const handleIncreaseQuantity = () => {
-    productMain.quantityPurchase += 1;
-    updateCart(
-      productMain.id,
-      productMain.quantityPurchase + 1,
-      activeSize,
-      activeColor
-    );
+    if (productMain.quantityPurchase !== undefined) {
+      productMain.quantityPurchase += 1;
+      updateCart(
+        String(productMain.id || productMain._id || ""),
+        productMain.quantityPurchase,
+        activeSize,
+        activeColor
+      );
+    }
   };
 
   const handleDecreaseQuantity = () => {
-    if (productMain.quantityPurchase > 1) {
+    if (
+      productMain.quantityPurchase !== undefined &&
+      productMain.quantityPurchase > 1
+    ) {
       productMain.quantityPurchase -= 1;
       updateCart(
-        productMain.id,
-        productMain.quantityPurchase - 1,
+        String(productMain.id || productMain._id || ""),
+        productMain.quantityPurchase,
         activeSize,
         activeColor
       );
@@ -107,34 +180,110 @@ const Default: React.FC<Props> = ({ data, productId }) => {
   };
 
   const handleAddToCart = () => {
-    if (!cartState.cartArray.find((item) => item.id === productMain.id)) {
-      addToCart({ ...productMain });
-      updateCart(
-        productMain.id,
-        productMain.quantityPurchase,
-        activeSize,
-        activeColor
-      );
-    } else {
-      updateCart(
-        productMain.id,
-        productMain.quantityPurchase,
-        activeSize,
-        activeColor
-      );
+    console.log("hello world");
+    console.log("Product data:", productMain);
+    console.log("Stock value:", productMain.stock);
+    console.log("Available value:", productMain.available);
+    
+    const productId = String(productMain.id || productMain._id || "");
+    
+    // Validate required selections before adding to cart
+    if (productMain.colors && productMain.colors.length > 0 && !activeColor) {
+      toast.error("Please select a color");
+      return;
     }
+    
+    if (productMain.sizes && productMain.sizes.length > 0 && !activeSize) {
+      toast.error("Please select a size");
+      return;
+    }
+
+    // Safely access product properties - explicitly handle undefined price
+    const safePrice: number = typeof productMain.price === 'number' ? productMain.price : 0;
+    const safeQuantity = productMain.quantityPurchase || 1;
+    
+    // Get image URL safely
+    let imageUrl = '';
+    if (productMain.images && productMain.images.length > 0) {
+      if (typeof productMain.images[0] === 'object' && productMain.images[0] !== null) {
+        const imgObject = productMain.images[0] as {url?: string};
+        imageUrl = imgObject.url || '';
+      }
+    }
+    if (!imageUrl && productMain.thumb) {
+      imageUrl = productMain.thumb;
+    }
+
+    // Prepare the cart item with selected options
+    const cartItem = {
+      ...productMain,
+      id: productId,
+      _id: productId,
+      quantityPurchase: safeQuantity,
+      selectedSize: activeSize || '',
+      selectedColor: activeColor || '',
+      price: safePrice,  // Using our safe price value
+      image: imageUrl,
+      subtotal: safePrice * safeQuantity
+    };
+
+    // Check if item already exists in cart
+    const existingItemIndex = cartState.cartArray.findIndex(
+      (item : any) => item.id === productId && 
+                item.selectedSize === (activeSize || '') && 
+                item.selectedColor === (activeColor || '')
+    );
+    
+    if (existingItemIndex === -1) {
+      // Add new item to cart
+      addToCart(cartItem);
+      console.log('Added new item to cart:', cartItem);
+    } else {
+      // Update existing cart item
+      updateCart(
+        productId,
+        cartState.cartArray[existingItemIndex].quantity + safeQuantity,
+        activeSize || '',
+        activeColor || ''
+      );
+      console.log('Updated existing item in cart');
+    }
+    
+    // Show success message and open cart modal
+    toast.success("Product added to cart");
     openModalCart();
+  };
+
+  const handleBuyNow = () => {
+    // Add to cart first
+    handleAddToCart();
+    
+    // Navigate to checkout page
+    setTimeout(() => {
+      router.push("/shop/checkout");
+    }, 300);
   };
 
   const handleAddToWishlist = () => {
     // if product existed in wishlit, remove from wishlist and set state to false
+    const productId = String(productMain.id || productMain._id || "");
     if (
-      wishlistState.wishlistArray.some((item) => item.id === productMain.id)
+      wishlistState.wishlistArray.some(
+        (item) =>
+          // Check both id or _id depending on what's available in the WishlistItem type
+          (item as any).id === productId || (item as any)._id === productId
+      )
     ) {
-      removeFromWishlist(productMain.id);
+      removeFromWishlist(productId);
     } else {
       // else, add to wishlist and set state to true
-      addToWishlist(productMain);
+      // Ensure product has both id and _id properties for the wishlist
+      const productWithId = {
+        ...productMain,
+        id: productId,
+        _id: productId,
+      };
+      addToWishlist(productWithId);
     }
     openModalWishlist();
   };
@@ -142,13 +291,24 @@ const Default: React.FC<Props> = ({ data, productId }) => {
   const handleAddToCompare = () => {
     // if product existed in wishlit, remove from wishlist and set state to false
     if (compareState.compareArray.length < 3) {
+      const productId = String(productMain.id || productMain._id || "");
       if (
-        compareState.compareArray.some((item) => item.id === productMain.id)
+        compareState.compareArray.some(
+          (item) =>
+            // Check both id or _id depending on what's available in the CompareItem type
+            (item as any).id === productId || (item as any)._id === productId
+        )
       ) {
-        removeFromCompare(productMain.id);
+        removeFromCompare(productId);
       } else {
         // else, add to wishlist and set state to true
-        addToCompare(productMain);
+        // Ensure product has both id and _id properties for the compare
+        const productWithId = {
+          ...productMain,
+          id: productId,
+          _id: productId,
+        };
+        addToCompare(productWithId);
       }
     } else {
       alert("Compare up to 3 products");
@@ -174,7 +334,7 @@ const Default: React.FC<Props> = ({ data, productId }) => {
                 modules={[Thumbs]}
                 className="mySwiper2 rounded-2xl overflow-hidden"
               >
-                {productMain.images.map((item, index) => (
+                {productMain.images?.map((item, index) => (
                   <SwiperSlide
                     key={index}
                     onClick={() => {
@@ -183,7 +343,7 @@ const Default: React.FC<Props> = ({ data, productId }) => {
                     }}
                   >
                     <Image
-                      src={item}
+                      src={(item as any).url || item}
                       width={1000}
                       height={1000}
                       alt="prd-img"
@@ -203,10 +363,10 @@ const Default: React.FC<Props> = ({ data, productId }) => {
                 modules={[Navigation, Thumbs]}
                 className="mySwiper"
               >
-                {productMain.images.map((item, index) => (
+                {productMain.images?.map((item, index) => (
                   <SwiperSlide key={index}>
                     <Image
-                      src={item}
+                      src={(item as any).url || item}
                       width={1000}
                       height={1000}
                       alt="prd-img"
@@ -235,7 +395,7 @@ const Default: React.FC<Props> = ({ data, productId }) => {
                     swiperRef.current = swiper;
                   }}
                 >
-                  {productMain.images.map((item, index) => (
+                  {productMain.images?.map((item, index) => (
                     <SwiperSlide
                       key={index}
                       onClick={() => {
@@ -243,7 +403,7 @@ const Default: React.FC<Props> = ({ data, productId }) => {
                       }}
                     >
                       <Image
-                        src={item}
+                        src={(item as any).url || item}
                         width={1000}
                         height={1000}
                         alt="prd-img"
@@ -260,15 +420,20 @@ const Default: React.FC<Props> = ({ data, productId }) => {
             <div className="product-infor md:w-1/2 w-full lg:pl-[15px] md:pl-2">
               <div className="flex justify-between">
                 <div>
-                  <div className="caption2 text-secondary font-semibold uppercase">
-                    {productMain.type}
-                  </div>
+                  {/* <div className="caption2 text-secondary font-semibold uppercase">
+                    {productMain.type || (typeof productMain.category === 'string' ? productMain.category : (productMain.category as any)?.name || '')}
+                  </div> */}
                   <div className="heading4 mt-1">{productMain.name}</div>
                 </div>
-                <div
+                {/* <div
                   className={`add-wishlist-btn w-12 h-12 flex items-center justify-center border border-line cursor-pointer rounded-xl duration-300 hover:bg-black hover:text-white ${
                     wishlistState.wishlistArray.some(
-                      (item) => item.id === productMain.id
+                      (item) =>
+                        // Check both id and _id properties safely using type casting
+                        String((item as any).id || "") ===
+                          String(productMain.id || "") ||
+                        String((item as any)._id || "") ===
+                          String(productMain._id || "")
                     )
                       ? "active"
                       : ""
@@ -276,7 +441,12 @@ const Default: React.FC<Props> = ({ data, productId }) => {
                   onClick={handleAddToWishlist}
                 >
                   {wishlistState.wishlistArray.some(
-                    (item) => item.id === productMain.id
+                    (item) =>
+                      // Check both id and _id properties safely using type casting
+                      String((item as any).id || "") ===
+                        String(productMain.id || "") ||
+                      String((item as any)._id || "") ===
+                        String(productMain._id || "")
                   ) ? (
                     <>
                       <Icon.Heart
@@ -290,7 +460,7 @@ const Default: React.FC<Props> = ({ data, productId }) => {
                       <Icon.Heart size={24} />
                     </>
                   )}
-                </div>
+                </div> */}
               </div>
               <div className="flex items-center mt-3">
                 <Rate currentRate={productMain.rate} size={14} />
@@ -298,13 +468,18 @@ const Default: React.FC<Props> = ({ data, productId }) => {
               </div>
               <div className="flex items-center gap-3 flex-wrap mt-5 pb-6 border-b border-line">
                 <div className="product-price heading5">
-                  ${productMain.price}.00
+                  ${productMain.priceSale || productMain.price}.00
                 </div>
                 <div className="w-px h-4 bg-line"></div>
                 <div className="product-origin-price font-normal text-secondary2">
-                  <del>${productMain.originPrice}.00</del>
+                  <del>
+                    $
+                    {productMain.originPrice ||
+                      (productMain.priceSale ? productMain.price : 0)}
+                    .00
+                  </del>
                 </div>
-                {productMain.originPrice && (
+                {(productMain.originPrice || productMain.priceSale) && (
                   <div className="product-sale caption2 font-semibold bg-green px-3 py-0.5 inline-block rounded-full">
                     -{percentSale}%
                   </div>
@@ -320,33 +495,66 @@ const Default: React.FC<Props> = ({ data, productId }) => {
                     <span className="text-title color">{activeColor}</span>
                   </div>
                   <div className="list-color flex items-center gap-2 flex-wrap mt-3">
-                    {productMain.variation.map((item, index) => (
-                      <div
-                        className={`color-item w-12 h-12 rounded-xl duration-300 relative ${
-                          activeColor === item.color ? "active" : ""
-                        }`}
-                        key={index}
-                        datatype={item.image}
-                        onClick={() => {
-                          handleActiveColor(item.color);
-                        }}
-                      >
-                        <Image
-                          src={item.colorImage}
-                          width={100}
-                          height={100}
-                          alt="color"
-                          className="rounded-xl"
-                        />
-                        <div className="tag-action bg-black text-white caption2 capitalize px-1.5 py-0.5 rounded-sm">
-                          {item.color}
-                        </div>
-                      </div>
-                    ))}
+                    {productMain?.variation
+                      ? // Handle original variation format
+                        productMain.variation.map((item : any, index : number) => (
+                          <div
+                            className={`color-item w-12 h-12 rounded-xl duration-300 relative ${
+                              activeColor === item.color ? "active" : ""
+                            }`}
+                            key={index}
+                            datatype={item.image}
+                            onClick={() => {
+                              handleActiveColor(item.color);
+                            }}
+                          >
+                            <Image
+                              src={item.colorImage}
+                              width={100}
+                              height={100}
+                              alt="color"
+                              className="rounded-xl"
+                            />
+                            <div className="tag-action bg-black text-white caption2 capitalize px-1.5 py-0.5 rounded-sm">
+                              {item.color}
+                            </div>
+                          </div>
+                        ))
+                      : productMain?.colors
+                      ? // Handle API colors format which is a string array
+                        productMain.colors.map((color, index) => (
+                          <div
+                            className={`color-circle w-10 h-10 rounded-full flex items-center justify-center cursor-pointer relative ${
+                              activeColor === color ? "active" : ""
+                            }`}
+                            key={index}
+                            onClick={() => {
+                              handleActiveColor(color);
+                            }}
+                            style={{
+                              backgroundColor: color.toLowerCase(),
+                              border: "1px solid #e0e0e0",
+                              boxShadow:
+                                activeColor === color
+                                  ? "0 0 0 2px #ffff"
+                                  : "none",
+                            }}
+                          >
+                            {activeColor === color && (
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                {/* <div className="w-3 h-3 rounded-full bg-white"></div> */}
+                              </div>
+                            )}
+                            <div className="tag-action opacity-0 hover:opacity-100 absolute -bottom-7 left-1/2 transform -translate-x-1/2  text-white caption2 capitalize px-1.5 py-0.5 rounded-sm whitespace-nowrap">
+                              {color}
+                            </div>
+                          </div>
+                        ))
+                      : null}
                   </div>
                 </div>
                 <div className="choose-size mt-5">
-                  <div className="heading flex items-center justify-between">
+                  {/* <div className="heading flex items-center justify-between">
                     <div className="text-title">
                       Size:{" "}
                       <span className="text-title size">{activeSize}</span>
@@ -362,9 +570,9 @@ const Default: React.FC<Props> = ({ data, productId }) => {
                       isOpen={openSizeGuide}
                       onClose={handleCloseSizeGuide}
                     />
-                  </div>
+                  </div> */}
                   <div className="list-size flex items-center gap-2 flex-wrap mt-3">
-                    {productMain.sizes.map((item, index) => (
+                    {productMain?.sizes?.map((item, index) => (
                       <div
                         className={`size-item ${
                           item === "freesize" ? "px-3 py-2" : "w-12 h-12"
@@ -379,7 +587,7 @@ const Default: React.FC<Props> = ({ data, productId }) => {
                     ))}
                   </div>
                 </div>
-                <div className="text-title mt-5">Quantity:</div>
+                {/* <div className="text-title mt-5">Quantity:</div> */}
                 <div className="choose-quantity flex items-center lg:justify-between gap-5 gap-y-3 mt-3">
                   <div className="quantity-block md:p-3 max-md:py-1.5 max-md:px-3 flex items-center justify-between rounded-lg border border-line sm:w-[180px] w-[120px] flex-shrink-0">
                     <Icon.Minus
@@ -390,7 +598,7 @@ const Default: React.FC<Props> = ({ data, productId }) => {
                       } cursor-pointer`}
                     />
                     <div className="body1 font-semibold">
-                      {productMain.quantityPurchase}
+                      {productMain.quantityPurchase || 1}
                     </div>
                     <Icon.Plus
                       size={20}
@@ -398,18 +606,53 @@ const Default: React.FC<Props> = ({ data, productId }) => {
                       className="cursor-pointer"
                     />
                   </div>
-                  <div
+                  <div className="stock-info text-sm">
+                    {(productMain.available || 0) > 0 ? 
+                      <span className={`${productMain?.available ? productMain.available < 10 ? "text-red" : "text-success" : "text-success"}`}>{`only ${productMain.available} available`}</span> : 
+                      <span className="text-red-600">Out of stock</span>}
+                  </div>
+                </div>
+                
+                <div className="button-block flex flex-col md:flex-row gap-3 mt-5">
+                  <button
                     onClick={handleAddToCart}
-                    className="button-main w-full text-center bg-white text-black border border-black"
+                    disabled={!(productMain.stock || productMain.available || 0) || (productMain.stock || productMain.available || 0) <= 0}
+                    className={`button-main flex-1 px-4 py-3 flex items-center justify-center gap-2 text-center ${!(productMain.stock || productMain.available || 0) || (productMain.stock || productMain.available || 0) <= 0 ? 'bg-gray-300 cursor-not-allowed' : 'bg-white text-black hover:bg-black hover:text-white transition-all duration-300 border border-black'}`}
                   >
+                    <Icon.ShoppingCart size={20} />
                     Add To Cart
-                  </div>
-                </div>
-                <div className="button-block mt-5">
-                  <div className="button-main w-full text-center">
+                  </button>
+                  <button
+                    onClick={handleBuyNow}
+                    disabled={!(productMain.stock || productMain.available || 0) || (productMain.stock || productMain.available || 0) <= 0}
+                    className={`button-main flex-1 px-4 py-3 flex items-center justify-center gap-2 text-center ${!(productMain.stock || productMain.available || 0) || (productMain.stock || productMain.available || 0) <= 0 ? 'bg-gray-300 cursor-not-allowed' : 'bg-black text-white hover:opacity-90 transition-all duration-300'}`}
+                  >
+                    <Icon.ShoppingBag size={20} />
                     Buy It Now
-                  </div>
+                  </button>
                 </div>
+                
+                {/* <div className="additional-actions flex flex-wrap justify-between gap-2 mt-5">
+                  <button 
+                    onClick={handleAddToWishlist}
+                    className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100 transition-all duration-300">
+                    <Icon.Heart size={20} fill={wishlistState.wishlistArray.some(
+                        (item) => (item as any).id === productId || (item as any)._id === productId
+                      ) ? "#FF3333" : "none"} />
+                    {wishlistState.wishlistArray.some(
+                        (item) => (item as any).id === productId || (item as any)._id === productId
+                      ) ? "Remove from Wishlist" : "Add to Wishlist"}
+                  </button>
+                  
+                  <button 
+                    onClick={handleAddToCompare}
+                    className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100 transition-all duration-300">
+                    <Icon.ArrowsLeftRight size={20} />
+                    {compareState.compareArray.some(
+                        (item) => (item as any).id === productId || (item as any)._id === productId
+                      ) ? "Remove from Compare" : "Add to Compare"}
+                  </button>
+                </div> */}
                 <div className="flex items-center lg:gap-20 gap-8 mt-5 pb-6 border-b border-line">
                   {/* <div
                     className="compare flex items-center gap-3 cursor-pointer"
@@ -423,14 +666,14 @@ const Default: React.FC<Props> = ({ data, productId }) => {
                     </div>
                     <span>Compare</span>
                   </div> */}
-                  <div className="share flex items-center gap-3 cursor-pointer">
+                  {/* <div className="share flex items-center gap-3 cursor-pointer">
                     <div className="share-btn md:w-12 md:h-12 w-10 h-10 flex items-center justify-center border border-line cursor-pointer rounded-xl duration-300 hover:bg-black hover:text-white">
                       <Icon.ShareNetwork weight="fill" className="heading6" />
                     </div>
                     <span>Share Products</span>
-                  </div>
+                  </div> */}
                 </div>
-                <div className="more-infor mt-6">
+                {/* <div className="more-infor mt-6">
                   <div className="flex items-center gap-4 flex-wrap">
                     <div className="flex items-center gap-1">
                       <Icon.ArrowClockwise className="body1" />
@@ -462,14 +705,15 @@ const Default: React.FC<Props> = ({ data, productId }) => {
                   <div className="flex items-center gap-1 mt-3">
                     <div className="text-title">Categories:</div>
                     <div className="text-secondary">
-                      {productMain.category}, {productMain.gender}
+                      {typeof productMain.category === 'string' ? productMain.category : (productMain.category as any)?.name || ''}
+                      {productMain.gender && `, ${productMain.gender}`}
                     </div>
                   </div>
                   <div className="flex items-center gap-1 mt-3">
                     <div className="text-title">Tag:</div>
                     <div className="text-secondary">{productMain.type}</div>
                   </div>
-                </div>
+                </div> */}
                 <div className="list-payment mt-7">
                   <div className="main-content lg:pt-8 pt-6 lg:pb-6 pb-4 sm:px-4 px-3 border border-line rounded-xl relative max-md:w-2/3 max-sm:w-full">
                     <div className="heading6 px-5 bg-white absolute -top-[14px] left-1/2 -translate-x-1/2 whitespace-nowrap">
@@ -544,7 +788,7 @@ const Default: React.FC<Props> = ({ data, productId }) => {
                   </div>
                 </div>
               </div>
-              <div className="get-it mt-6 pb-8 border-b border-line">
+              {/* <div className="get-it mt-6 pb-8 border-b border-line">
                 <div className="heading5">Get it today</div>
                 <div className="item flex items-center gap-3 mt-4">
                   <div className="icon-delivery-truck text-4xl"></div>
@@ -574,8 +818,8 @@ const Default: React.FC<Props> = ({ data, productId }) => {
                     </div>
                   </div>
                 </div>
-              </div>
-              <div className="list-product hide-product-sold  menu-main mt-6">
+              </div> */}
+              {/* <div className="list-product hide-product-sold  menu-main mt-6">
                 <div className="heading5 pb-4">
                   You{String.raw`'ll`} love this too
                 </div>
@@ -611,7 +855,7 @@ const Default: React.FC<Props> = ({ data, productId }) => {
                       </SwiperSlide>
                     ))}
                 </Swiper>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
@@ -619,22 +863,42 @@ const Default: React.FC<Props> = ({ data, productId }) => {
           <div className="container">
             <div className="flex items-center justify-center w-full">
               <div className="menu-tab flex items-center md:gap-[60px] gap-8">
-                <div
-                  className={`tab-item heading5 has-line-before text-secondary2 hover:text-black duration-300 ${
-                    activeTab === "description" ? "active" : ""
-                  }`}
-                  onClick={() => handleActiveTab("description")}
-                >
-                  Description
-                </div>
-                <div
-                  className={`tab-item heading5 has-line-before text-secondary2 hover:text-black duration-300 ${
-                    activeTab === "specifications" ? "active" : ""
-                  }`}
-                  onClick={() => handleActiveTab("specifications")}
-                >
-                  Specifications
-                </div>
+                {productMain.description && (
+                  <div
+                    className={` heading5 has-line-before text-secondary2  hover:text-black duration-300 ${
+                      activeTab === "description" ? "active" : ""
+                    }`}
+                    onClick={() => handleActiveTab("description")}
+                  >
+                    Description
+                  </div>
+                )}
+                {((productMain.sizes && productMain.sizes.length > 0) ||
+                  (productMain.colors && productMain.colors.length > 0) ||
+                  (productMain.variation && productMain.variation.length > 0) ||
+                  productMain.brand ||
+                  productMain.material ||
+                  productMain.rate) && (
+                  <div
+                    className={`
+                      heading5 has-line-before text-secondary2 hover:text-black duration-300 ${
+                        activeTab === "specifications" ? "active" : ""
+                      }`}
+                    onClick={() => handleActiveTab("specifications")}
+                  >
+                    Specifications
+                  </div>
+                )}
+                {productMain.reviews && productMain.reviews.length > 0 && (
+                  <div
+                    className={`tab-item heading5 has-line-before text-secondary2 hover:text-black duration-300 ${
+                      activeTab === "reviews" ? "active" : ""
+                    }`}
+                    onClick={() => handleActiveTab("reviews")}
+                  >
+                    Reviews ({productMain.reviews.length})
+                  </div>
+                )}
               </div>
             </div>
             <div className="desc-block mt-8">
@@ -643,94 +907,40 @@ const Default: React.FC<Props> = ({ data, productId }) => {
                   activeTab === "description" ? "open" : ""
                 }`}
               >
-                <div className="grid md:grid-cols-2 gap-8 gap-y-5">
-                  <div className="left">
-                    <div className="heading6">Description</div>
-                    <div className="text-secondary mt-2">
-                      Keep your home organized, yet elegant with storage
-                      cabinets by Onita Patio Furniture. These cabinets not only
-                      make a great storage units, but also bring a great
-                      decorative accent to your decor. Traditionally designed,
-                      they are perfect to be used in the hallway, living room,
-                      bedroom, office or any place where you need to store or
-                      display things. Made of high quality materials, they are
-                      sturdy and durable for years. Bring one-of-a-kind look to
-                      your interior with furniture from Onita Furniture!
-                    </div>
-                  </div>
-                  <div className="right">
-                    <div className="heading6">About This Products</div>
-                    <div className="list-feature">
-                      <div className="item flex gap-1 text-secondary mt-1">
-                        <Icon.Dot size={28} />
-                        <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit.
-                        </p>
-                      </div>
-                      <div className="item flex gap-1 text-secondary mt-1">
-                        <Icon.Dot size={28} />
-                        <p>
-                          Nulla luctus libero quis mauris vestibulum dapibus.
-                        </p>
-                      </div>
-                      <div className="item flex gap-1 text-secondary mt-1">
-                        <Icon.Dot size={28} />
-                        <p>
-                          Maecenas ullamcorper erat mi, vel consequat enim
-                          suscipit at.
-                        </p>
-                      </div>
-                      <div className="item flex gap-1 text-secondary mt-1">
-                        <Icon.Dot size={28} />
-                        <p>
-                          Quisque consectetur nibh ac urna molestie scelerisque.
-                        </p>
-                      </div>
-                      <div className="item flex gap-1 text-secondary mt-1">
-                        <Icon.Dot size={28} />
-                        <p>
-                          Mauris in nisl scelerisque massa consectetur pretium
-                          sed et mauris.
-                        </p>
+                {productMain.description ? (
+                  <div className="grid md:grid-cols-2 gap-8 gap-y-5">
+                    <div className="left">
+                      <div className="heading6">Description</div>
+                      <div className="text-secondary mt-2">
+                        {productMain.description}
                       </div>
                     </div>
+                    {productMain.description_points &&
+                      Array.isArray(productMain.description_points) &&
+                      productMain.description_points.length > 0 && (
+                        <div className="right">
+                          <div className="heading6">About This Product</div>
+                          <div className="list-feature">
+                            {productMain.description_points.map(
+                              (feature: string, index: number) => (
+                                <div
+                                  key={index}
+                                  className="item flex gap-1 text-secondary mt-1"
+                                >
+                                  <Icon.Dot size={28} />
+                                  <p>{feature}</p>
+                                </div>
+                              )
+                            )}
+                          </div>
+                        </div>
+                      )}
                   </div>
-                </div>
-                <div className="grid lg:grid-cols-4 grid-cols-2 gap-[30px] md:mt-10 mt-6">
-                  <div className="item">
-                    <div className="icon-delivery-truck text-4xl"></div>
-                    <div className="heading6 mt-4">Shipping Faster</div>
-                    <div className="text-secondary mt-2">
-                      Use on walls, furniture, doors and many more surfaces. The
-                      possibilities are endless.
-                    </div>
+                ) : (
+                  <div className="text-center py-8 text-secondary">
+                    No description available for this product.
                   </div>
-                  <div className="item">
-                    <div className="icon-cotton text-4xl"></div>
-                    <div className="heading6 mt-4">Cotton Material</div>
-                    <div className="text-secondary mt-2">
-                      Use on walls, furniture, doors and many more surfaces. The
-                      possibilities are endless.
-                    </div>
-                  </div>
-                  <div className="item">
-                    <div className="icon-guarantee text-4xl"></div>
-                    <div className="heading6 mt-4">High Quality</div>
-                    <div className="text-secondary mt-2">
-                      Use on walls, furniture, doors and many more surfaces. The
-                      possibilities are endless.
-                    </div>
-                  </div>
-                  <div className="item">
-                    <div className="icon-leaves-compatible text-4xl"></div>
-                    <div className="heading6 mt-4">highly compatible</div>
-                    <div className="text-secondary mt-2">
-                      Use on walls, furniture, doors and many more surfaces. The
-                      possibilities are endless.
-                    </div>
-                  </div>
-                </div>
+                )}
               </div>
               <div
                 className={`desc-item specifications flex items-center justify-center ${
@@ -738,29 +948,83 @@ const Default: React.FC<Props> = ({ data, productId }) => {
                 }`}
               >
                 <div className="lg:w-1/2 sm:w-3/4 w-full">
-                  <div className="item bg-surface flex items-center gap-8 py-3 px-10">
-                    <div className="text-title sm:w-1/4 w-1/3">Rating</div>
-                    <div className="flex items-center gap-1">
-                      <Rate currentRate={4} size={12} />
-                      <p>(1.234)</p>
+                  {/* Rating section - only shown if rate exists */}
+                  {productMain.rate && (
+                    <div className="item bg-surface flex items-center gap-8 py-3 px-10">
+                      <div className="text-title sm:w-1/4 w-1/3">Rating</div>
+                      <div className="flex items-center gap-1">
+                        <Rate
+                          currentRate={Number(productMain.rate)}
+                          size={12}
+                        />
+                        <p>({productMain.review_count || 0})</p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="item flex items-center gap-8 py-3 px-10">
-                    <div className="text-title sm:w-1/4 w-1/3">Outer Shell</div>
-                    <p>100% polyester</p>
-                  </div>
-                  <div className="item bg-surface flex items-center gap-8 py-3 px-10">
-                    <div className="text-title sm:w-1/4 w-1/3">Lining</div>
-                    <p>100% polyurethane</p>
-                  </div>
-                  <div className="item flex items-center gap-8 py-3 px-10">
-                    <div className="text-title sm:w-1/4 w-1/3">Size</div>
-                    <p>S, M, L, XL</p>
-                  </div>
-                  <div className="item bg-surface flex items-center gap-8 py-3 px-10">
-                    <div className="text-title sm:w-1/4 w-1/3">Colors</div>
-                    <p>Grey, Red, Blue, Black</p>
-                  </div>
+                  )}
+                  {/* Material section - only shown if material exists */}
+                  {productMain.material && (
+                    <div className="item flex items-center gap-8 py-3 px-10">
+                      <div className="text-title sm:w-1/4 w-1/3">Material</div>
+                      <p>{productMain.material}</p>
+                    </div>
+                  )}
+                  {/* Brand section - only shown if brand exists */}
+                  {productMain.brand && (
+                    <div className="item bg-surface flex items-center gap-8 py-3 px-10">
+                      <div className="text-title sm:w-1/4 w-1/3">Brand</div>
+                      <p>
+                        {typeof productMain.brand === "string"
+                          ? productMain.brand
+                          : typeof productMain.brand === "object" &&
+                            productMain.brand?.name
+                          ? productMain.brand.name
+                          : ""}
+                      </p>
+                    </div>
+                  )}
+                  {productMain.sizes && productMain.sizes.length > 0 && (
+                    <div className="item flex items-center gap-8 py-3 px-10">
+                      <div className="text-title sm:w-1/4 w-1/3">Size</div>
+                      <p>{productMain.sizes.join(", ")}</p>
+                    </div>
+                  )}
+                  {productMain.colors && productMain.colors.length > 0 && (
+                    <div className="item bg-surface flex items-center gap-8 py-3 px-10">
+                      <div className="text-title sm:w-1/4 w-1/3">Colors</div>
+                      <div className="flex flex-wrap gap-2">
+                        {Array.isArray(productMain.colors) &&
+                        productMain.colors[0] &&
+                        typeof productMain.colors[0] === "string"
+                          ? productMain.colors.map(
+                              (color: string, index: number) => (
+                                <div
+                                  key={index}
+                                  className="w-6 h-6 rounded-full"
+                                  style={{
+                                    backgroundColor: color.toLowerCase(),
+                                    border: "1px solid #e0e0e0",
+                                  }}
+                                  title={color}
+                                ></div>
+                              )
+                            )
+                          : productMain.variation &&
+                            productMain.variation.map(
+                              (item: any, index: number) => (
+                                <div
+                                  key={index}
+                                  className="w-6 h-6 rounded-full"
+                                  style={{
+                                    backgroundColor: item.color.toLowerCase(),
+                                    border: "1px solid #e0e0e0",
+                                  }}
+                                  title={item.color}
+                                ></div>
+                              )
+                            )}
+                      </div>
+                    </div>
+                  )}
                   <div className="item flex items-center gap-8 py-3 px-10">
                     <div className="text-title sm:w-1/4 w-1/3">Care</div>
                     <div className="flex items-center gap-5">
@@ -860,493 +1124,488 @@ const Default: React.FC<Props> = ({ data, productId }) => {
             </div>
           </div>
         </div>
-        <div className="review-block md:py-20 py-10 bg-surface">
-          <div className="container">
-            <div className="heading flex items-center justify-between flex-wrap gap-4">
-              <div className="heading4">Customer Review</div>
-              <Link
-                href={"#form-review"}
-                className="button-main bg-white text-black border border-black"
-              >
-                Write Reviews
-              </Link>
-            </div>
-            <div className="top-overview flex justify-between py-6 max-md:flex-col gap-y-6">
-              <div className="rating lg:w-1/4 md:w-[30%] lg:pr-[75px] md:pr-[35px]">
-                <div className="heading flex items-center justify-center flex-wrap gap-3 gap-y-4">
-                  <div className="text-display">4.6</div>
-                  <div className="flex flex-col items-center">
-                    <Rate currentRate={5} size={18} />
-                    <div className="text-secondary text-center mt-1">
-                      (1,968 Ratings)
-                    </div>
-                  </div>
-                </div>
-                <div className="list-rating mt-3">
-                  <div className="item flex items-center justify-between gap-1.5">
-                    <div className="flex items-center gap-1">
-                      <div className="caption1">5</div>
-                      <Icon.Star size={14} weight="fill" />
-                    </div>
-                    <div className="progress bg-line relative w-3/4 h-2">
-                      <div className="progress-percent absolute bg-yellow w-[50%] h-full left-0 top-0"></div>
-                    </div>
-                    <div className="caption1">50%</div>
-                  </div>
-                  <div className="item flex items-center justify-between gap-1.5 mt-1">
-                    <div className="flex items-center gap-1">
-                      <div className="caption1">4</div>
-                      <Icon.Star size={14} weight="fill" />
-                    </div>
-                    <div className="progress bg-line relative w-3/4 h-2">
-                      <div className="progress-percent absolute bg-yellow w-[20%] h-full left-0 top-0"></div>
-                    </div>
-                    <div className="caption1">20%</div>
-                  </div>
-                  <div className="item flex items-center justify-between gap-1.5 mt-1">
-                    <div className="flex items-center gap-1">
-                      <div className="caption1">3</div>
-                      <Icon.Star size={14} weight="fill" />
-                    </div>
-                    <div className="progress bg-line relative w-3/4 h-2">
-                      <div className="progress-percent absolute bg-yellow w-[10%] h-full left-0 top-0"></div>
-                    </div>
-                    <div className="caption1">10%</div>
-                  </div>
-                  <div className="item flex items-center justify-between gap-1.5 mt-1">
-                    <div className="flex items-center gap-1">
-                      <div className="caption1">2</div>
-                      <Icon.Star size={14} weight="fill" />
-                    </div>
-                    <div className="progress bg-line relative w-3/4 h-2">
-                      <div className="progress-percent absolute bg-yellow w-[10%] h-full left-0 top-0"></div>
-                    </div>
-                    <div className="caption1">10%</div>
-                  </div>
-                  <div className="item flex items-center justify-between gap-1.5 mt-1">
-                    <div className="flex items-center gap-2">
-                      <div className="caption1">1</div>
-                      <Icon.Star size={14} weight="fill" />
-                    </div>
-                    <div className="progress bg-line relative w-3/4 h-2">
-                      <div className="progress-percent absolute bg-yellow w-[10%] h-full left-0 top-0"></div>
-                    </div>
-                    <div className="caption1">10%</div>
-                  </div>
-                </div>
+        {productMain.reviews && productMain.reviews.length > 0 && (
+          <div className="review-block md:py-20 py-10 bg-surface">
+            <div className="container">
+              <div className="heading flex items-center justify-between flex-wrap gap-4">
+                <div className="heading4">Customer Review</div>
+                <Link
+                  href={"#form-review"}
+                  className="button-main bg-white text-black border border-black"
+                >
+                  Write Reviews
+                </Link>
               </div>
-              <div className="list-img lg:w-3/4 md:w-[70%] lg:pl-[15px] md:pl-[15px]">
-                <div className="heading5">All Image (128)</div>
-                <div className="list md:mt-6 mt-3">
-                  <Swiper
-                    spaceBetween={16}
-                    slidesPerView={3}
-                    modules={[Navigation]}
-                    breakpoints={{
-                      576: {
-                        slidesPerView: 4,
-                        spaceBetween: 16,
-                      },
-                      640: {
-                        slidesPerView: 5,
-                        spaceBetween: 16,
-                      },
-                      768: {
-                        slidesPerView: 4,
-                        spaceBetween: 16,
-                      },
-                      992: {
-                        slidesPerView: 5,
-                        spaceBetween: 20,
-                      },
-                      1100: {
-                        slidesPerView: 5,
-                        spaceBetween: 20,
-                      },
-                      1290: {
-                        slidesPerView: 7,
-                        spaceBetween: 20,
-                      },
-                    }}
-                  >
-                    <SwiperSlide>
-                      <Image
-                        src={
-                          "https://anvogue.vercel.app/_next/image?url=%2Fimages%2Fproduct%2Ffashion%2F10-2.png&w=1080&q=75"
-                        }
-                        width={400}
-                        height={400}
-                        alt=""
-                        className="w-[120px] aspect-square object-cover rounded-lg"
-                      />
-                    </SwiperSlide>
-                    <SwiperSlide>
-                      <Image
-                        src={
-                          "https://anvogue.vercel.app/_next/image?url=%2Fimages%2Fproduct%2Ffashion%2F10-2.png&w=1080&q=75"
-                        }
-                        width={400}
-                        height={400}
-                        alt=""
-                        className="w-[120px] aspect-square object-cover rounded-lg"
-                      />
-                    </SwiperSlide>
-                    <SwiperSlide>
-                      <Image
-                        src={
-                          "https://anvogue.vercel.app/_next/image?url=%2Fimages%2Fproduct%2Ffashion%2F10-2.png&w=1080&q=75"
-                        }
-                        width={400}
-                        height={400}
-                        alt=""
-                        className="w-[120px] aspect-square object-cover rounded-lg"
-                      />
-                    </SwiperSlide>
-                    <SwiperSlide>
-                      <Image
-                        src={
-                          "https://anvogue.vercel.app/_next/image?url=%2Fimages%2Fproduct%2Ffashion%2F10-2.png&w=1080&q=75"
-                        }
-                        width={400}
-                        height={400}
-                        alt=""
-                        className="w-[120px] aspect-square object-cover rounded-lg"
-                      />
-                    </SwiperSlide>
-                    <SwiperSlide>
-                      <Image
-                        src={
-                          "https://anvogue.vercel.app/_next/image?url=%2Fimages%2Fproduct%2Ffashion%2F10-2.png&w=1080&q=75"
-                        }
-                        width={400}
-                        height={400}
-                        alt=""
-                        className="w-[120px] aspect-square object-cover rounded-lg"
-                      />
-                    </SwiperSlide>
-                    <SwiperSlide>
-                      <Image
-                        src={
-                          "https://anvogue.vercel.app/_next/image?url=%2Fimages%2Fproduct%2Ffashion%2F10-2.png&w=1080&q=75"
-                        }
-                        width={400}
-                        height={400}
-                        alt=""
-                        className="w-[120px] aspect-square object-cover rounded-lg"
-                      />
-                    </SwiperSlide>
-                    <SwiperSlide>
-                      <Image
-                        src={
-                          "https://anvogue.vercel.app/_next/image?url=%2Fimages%2Fproduct%2Ffashion%2F10-2.png&w=1080&q=75"
-                        }
-                        width={400}
-                        height={400}
-                        alt=""
-                        className="w-[120px] aspect-square object-cover rounded-lg"
-                      />
-                    </SwiperSlide>
-                  </Swiper>
-                </div>
-                <div className="sorting flex items-center flex-wrap md:gap-5 gap-3 gap-y-3 mt-6">
-                  <div className="text-button">Sort by</div>
-                  <div className="item bg-white px-4 py-1 border border-line rounded-full">
-                    Newest
-                  </div>
-                  <div className="item bg-white px-4 py-1 border border-line rounded-full">
-                    5 Star
-                  </div>
-                  <div className="item bg-white px-4 py-1 border border-line rounded-full">
-                    4 Star
-                  </div>
-                  <div className="item bg-white px-4 py-1 border border-line rounded-full">
-                    3 Star
-                  </div>
-                  <div className="item bg-white px-4 py-1 border border-line rounded-full">
-                    2 Star
-                  </div>
-                  <div className="item bg-white px-4 py-1 border border-line rounded-full">
-                    1 Star
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="list-review">
-              <div className="item flex max-lg:flex-col gap-y-4 w-full py-6 border-t border-line">
-                <div className="left lg:w-1/4 w-full lg:pr-[15px]">
-                  <div className="list-img-review flex gap-2">
-                    <Image
-                      src={
-                        "https://anvogue.vercel.app/_next/image?url=%2Fimages%2Fproduct%2Ffashion%2F9-2.png&w=640&q=75"
-                      }
-                      width={200}
-                      height={200}
-                      alt="img"
-                      className="w-[60px] aspect-square rounded-lg"
-                    />
-                    <Image
-                      src={
-                        "https://anvogue.vercel.app/_next/image?url=%2Fimages%2Fproduct%2Ffashion%2F9-3.png&w=640&q=75"
-                      }
-                      width={200}
-                      height={200}
-                      alt="img"
-                      className="w-[60px] aspect-square rounded-lg"
-                    />
-                    <Image
-                      src={
-                        "https://anvogue.vercel.app/_next/image?url=%2Fimages%2Fproduct%2Ffashion%2F9-4.png&w=640&q=75"
-                      }
-                      width={200}
-                      height={200}
-                      alt="img"
-                      className="w-[60px] aspect-square rounded-lg"
-                    />
-                  </div>
-                  <div className="user mt-3">
-                    <div className="text-title">Tony Nguyen</div>
-                    <div className="flex items-center gap-2">
-                      <div className="text-secondary2">1 days ago</div>
-                      <div className="text-secondary2">-</div>
-                      <div className="text-secondary2">
-                        <span>Yellow</span> / <span>XL</span>
+              <div className="top-overview flex justify-between py-6 max-md:flex-col gap-y-6">
+                <div className="rating lg:w-1/4 md:w-[30%] lg:pr-[75px] md:pr-[35px]">
+                  <div className="heading flex items-center justify-center flex-wrap gap-3 gap-y-4">
+                    <div className="text-display">4.6</div>
+                    <div className="flex flex-col items-center">
+                      <Rate currentRate={5} size={18} />
+                      <div className="text-secondary text-center mt-1">
+                        (1,968 Ratings)
                       </div>
                     </div>
                   </div>
-                </div>
-                <div className="right lg:w-3/4 w-full lg:pl-[15px]">
-                  <Rate currentRate={5} size={16} />
-                  <div className="heading5 mt-3">
-                    Unbeatable Style and Quality: A Fashion Brand That Delivers
-                  </div>
-                  <div className="body1 mt-3">
-                    I can{String.raw`'t`} get enough of the fashion pieces from
-                    this brand. They have a great selection for every occasion
-                    and the prices are reasonable. The shipping is fast and the
-                    items always arrive in perfect condition.
-                  </div>
-                  <div className="action mt-3">
-                    <div className="flex items-center gap-4">
-                      <div className="like-btn flex items-center gap-1 cursor-pointer">
-                        <Icon.HandsClapping size={18} />
-                        <div className="text-button">20</div>
+                  <div className="list-rating mt-3">
+                    <div className="item flex items-center justify-between gap-1.5">
+                      <div className="flex items-center gap-1">
+                        <div className="caption1">5</div>
+                        <Icon.Star size={14} weight="fill" />
                       </div>
-                      <Link
-                        href={"#form-review"}
-                        className="reply-btn text-button text-secondary cursor-pointer hover:text-black"
-                      >
-                        Reply
-                      </Link>
+                      <div className="progress bg-line relative w-3/4 h-2">
+                        <div className="progress-percent absolute bg-yellow w-[50%] h-full left-0 top-0"></div>
+                      </div>
+                      <div className="caption1">50%</div>
+                    </div>
+                    <div className="item flex items-center justify-between gap-1.5 mt-1">
+                      <div className="flex items-center gap-1">
+                        <div className="caption1">4</div>
+                        <Icon.Star size={14} weight="fill" />
+                      </div>
+                      <div className="progress bg-line relative w-3/4 h-2">
+                        <div className="progress-percent absolute bg-yellow w-[20%] h-full left-0 top-0"></div>
+                      </div>
+                      <div className="caption1">20%</div>
+                    </div>
+                    <div className="item flex items-center justify-between gap-1.5 mt-1">
+                      <div className="flex items-center gap-1">
+                        <div className="caption1">3</div>
+                        <Icon.Star size={14} weight="fill" />
+                      </div>
+                      <div className="progress bg-line relative w-3/4 h-2">
+                        <div className="progress-percent absolute bg-yellow w-[10%] h-full left-0 top-0"></div>
+                      </div>
+                      <div className="caption1">10%</div>
+                    </div>
+                    <div className="item flex items-center justify-between gap-1.5 mt-1">
+                      <div className="flex items-center gap-1">
+                        <div className="caption1">2</div>
+                        <Icon.Star size={14} weight="fill" />
+                      </div>
+                      <div className="progress bg-line relative w-3/4 h-2">
+                        <div className="progress-percent absolute bg-yellow w-[10%] h-full left-0 top-0"></div>
+                      </div>
+                      <div className="caption1">10%</div>
+                    </div>
+                    <div className="item flex items-center justify-between gap-1.5 mt-1">
+                      <div className="flex items-center gap-2">
+                        <div className="caption1">1</div>
+                        <Icon.Star size={14} weight="fill" />
+                      </div>
+                      <div className="progress bg-line relative w-3/4 h-2">
+                        <div className="progress-percent absolute bg-yellow w-[10%] h-full left-0 top-0"></div>
+                      </div>
+                      <div className="caption1">10%</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="list-img lg:w-3/4 md:w-[70%] lg:pl-[15px] md:pl-[15px]">
+                  <div className="heading5">All Image (128)</div>
+                  <div className="list md:mt-6 mt-3">
+                    <Swiper
+                      spaceBetween={16}
+                      slidesPerView={3}
+                      modules={[Navigation]}
+                      breakpoints={{
+                        576: {
+                          slidesPerView: 4,
+                          spaceBetween: 16,
+                        },
+                        640: {
+                          slidesPerView: 5,
+                          spaceBetween: 16,
+                        },
+                        768: {
+                          slidesPerView: 4,
+                          spaceBetween: 16,
+                        },
+                        992: {
+                          slidesPerView: 5,
+                          spaceBetween: 20,
+                        },
+                        1100: {
+                          slidesPerView: 5,
+                          spaceBetween: 20,
+                        },
+                        1290: {
+                          slidesPerView: 7,
+                          spaceBetween: 20,
+                        },
+                      }}
+                    >
+                      <SwiperSlide>
+                        <Image
+                          src={
+                            "https://anvogue.vercel.app/_next/image?url=%2Fimages%2Fproduct%2Ffashion%2F10-2.png&w=1080&q=75"
+                          }
+                          width={400}
+                          height={400}
+                          alt=""
+                          className="w-[120px] aspect-square object-cover rounded-lg"
+                        />
+                      </SwiperSlide>
+                      <SwiperSlide>
+                        <Image
+                          src={
+                            "https://anvogue.vercel.app/_next/image?url=%2Fimages%2Fproduct%2Ffashion%2F10-2.png&w=1080&q=75"
+                          }
+                          width={400}
+                          height={400}
+                          alt=""
+                          className="w-[120px] aspect-square object-cover rounded-lg"
+                        />
+                      </SwiperSlide>
+                      <SwiperSlide>
+                        <Image
+                          src={
+                            "https://anvogue.vercel.app/_next/image?url=%2Fimages%2Fproduct%2Ffashion%2F10-2.png&w=1080&q=75"
+                          }
+                          width={400}
+                          height={400}
+                          alt=""
+                          className="w-[120px] aspect-square object-cover rounded-lg"
+                        />
+                      </SwiperSlide>
+                      <SwiperSlide>
+                        <Image
+                          src={
+                            "https://anvogue.vercel.app/_next/image?url=%2Fimages%2Fproduct%2Ffashion%2F10-2.png&w=1080&q=75"
+                          }
+                          width={400}
+                          height={400}
+                          alt=""
+                          className="w-[120px] aspect-square object-cover rounded-lg"
+                        />
+                      </SwiperSlide>
+                      <SwiperSlide>
+                        <Image
+                          src={
+                            "https://anvogue.vercel.app/_next/image?url=%2Fimages%2Fproduct%2Ffashion%2F10-2.png&w=1080&q=75"
+                          }
+                          width={400}
+                          height={400}
+                          alt=""
+                          className="w-[120px] aspect-square object-cover rounded-lg"
+                        />
+                      </SwiperSlide>
+                      <SwiperSlide>
+                        <Image
+                          src={
+                            "https://anvogue.vercel.app/_next/image?url=%2Fimages%2Fproduct%2Ffashion%2F10-2.png&w=1080&q=75"
+                          }
+                          width={400}
+                          height={400}
+                          alt=""
+                          className="w-[120px] aspect-square object-cover rounded-lg"
+                        />
+                      </SwiperSlide>
+                      <SwiperSlide>
+                        <Image
+                          src={
+                            "https://anvogue.vercel.app/_next/image?url=%2Fimages%2Fproduct%2Ffashion%2F10-2.png&w=1080&q=75"
+                          }
+                          width={400}
+                          height={400}
+                          alt=""
+                          className="w-[120px] aspect-square object-cover rounded-lg"
+                        />
+                      </SwiperSlide>
+                    </Swiper>
+                  </div>
+                  <div className="sorting flex items-center flex-wrap md:gap-5 gap-3 gap-y-3 mt-6">
+                    <div className="text-button">Sort by</div>
+                    <div className="item bg-white px-4 py-1 border border-line rounded-full">
+                      Newest
+                    </div>
+                    <div className="item bg-white px-4 py-1 border border-line rounded-full">
+                      5 Star
+                    </div>
+                    <div className="item bg-white px-4 py-1 border border-line rounded-full">
+                      4 Star
+                    </div>
+                    <div className="item bg-white px-4 py-1 border border-line rounded-full">
+                      3 Star
+                    </div>
+                    <div className="item bg-white px-4 py-1 border border-line rounded-full">
+                      2 Star
+                    </div>
+                    <div className="item bg-white px-4 py-1 border border-line rounded-full">
+                      1 Star
                     </div>
                   </div>
                 </div>
               </div>
-              <div className="item flex max-lg:flex-col gap-y-4 w-full py-6 border-t border-line">
-                <div className="left lg:w-1/4 w-full lg:pr-[15px]">
-                  <div className="list-img-review flex gap-2">
-                  <Image
-                      src={
-                        "https://anvogue.vercel.app/_next/image?url=%2Fimages%2Fproduct%2Ffashion%2F9-2.png&w=640&q=75"
-                      }
-                      width={200}
-                      height={200}
-                      alt="img"
-                      className="w-[60px] aspect-square rounded-lg"
-                    />
-                    <Image
-                      src={
-                        "https://anvogue.vercel.app/_next/image?url=%2Fimages%2Fproduct%2Ffashion%2F9-3.png&w=640&q=75"
-                      }
-                      width={200}
-                      height={200}
-                      alt="img"
-                      className="w-[60px] aspect-square rounded-lg"
-                    />
-                    <Image
-                      src={
-                        "https://anvogue.vercel.app/_next/image?url=%2Fimages%2Fproduct%2Ffashion%2F9-4.png&w=640&q=75"
-                      }
-                      width={200}
-                      height={200}
-                      alt="img"
-                      className="w-[60px] aspect-square rounded-lg"
-                    />
+              <div className="list-review">
+                <div className="item flex max-lg:flex-col gap-y-4 w-full py-6 border-t border-line">
+                  <div className="left lg:w-1/4 w-full lg:pr-[15px]">
+                    <div className="list-img-review flex gap-2">
+                      <Image
+                        src={
+                          "https://anvogue.vercel.app/_next/image?url=%2Fimages%2Fproduct%2Ffashion%2F9-2.png&w=640&q=75"
+                        }
+                        width={200}
+                        height={200}
+                        alt="img"
+                        className="w-[60px] aspect-square rounded-lg"
+                      />
+                      <Image
+                        src={
+                          "https://anvogue.vercel.app/_next/image?url=%2Fimages%2Fproduct%2Ffashion%2F9-3.png&w=640&q=75"
+                        }
+                        width={200}
+                        height={200}
+                        alt="img"
+                        className="w-[60px] aspect-square rounded-lg"
+                      />
+                      <Image
+                        src={
+                          "https://anvogue.vercel.app/_next/image?url=%2Fimages%2Fproduct%2Ffashion%2F9-4.png&w=640&q=75"
+                        }
+                        width={200}
+                        height={200}
+                        alt="img"
+                        className="w-[60px] aspect-square rounded-lg"
+                      />
+                    </div>
+                    <div className="user mt-3">
+                      <div className="text-title">Tony Nguyen</div>
+                      <div className="flex items-center gap-2">
+                        <div className="text-secondary2">1 days ago</div>
+                        <div className="text-secondary2">-</div>
+                        <div className="text-secondary2">
+                          <span>Yellow</span> / <span>XL</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="user mt-3">
-                    <div className="text-title">Tony Nguyen</div>
-                    <div className="flex items-center gap-2">
-                      <div className="text-secondary2">1 days ago</div>
-                      <div className="text-secondary2">-</div>
-                      <div className="text-secondary2">
-                        <span>Yellow</span> / <span>XL</span>
+                  <div className="right lg:w-3/4 w-full lg:pl-[15px]">
+                    <Rate currentRate={5} size={16} />
+                    <div className="heading5 mt-3">
+                      Unbeatable Style and Quality: A Fashion Brand That
+                      Delivers
+                    </div>
+                    <div className="body1 mt-3">
+                      I can{String.raw`'t`} get enough of the fashion pieces
+                      from this brand. They have a great selection for every
+                      occasion and the prices are reasonable. The shipping is
+                      fast and the items always arrive in perfect condition.
+                    </div>
+                    <div className="action mt-3">
+                      <div className="flex items-center gap-4">
+                        <div className="like-btn flex items-center gap-1 cursor-pointer">
+                          <Icon.HandsClapping size={18} />
+                          <div className="text-button">20</div>
+                        </div>
+                        <Link
+                          href={"#form-review"}
+                          className="reply-btn text-button text-secondary cursor-pointer hover:text-black"
+                        >
+                          Reply
+                        </Link>
                       </div>
                     </div>
                   </div>
                 </div>
-                <div className="right lg:w-3/4 w-full lg:pl-[15px]">
-                  <Rate currentRate={5} size={16} />
-                  <div className="heading5 mt-3">
-                    Exceptional Fashion: The Perfect Blend of Style and
-                    Durability
-                  </div>
-                  <div className="body1 mt-3">
-                    The fashion brand{String.raw`'s`} online shopping experience
-                    is seamless. The website is user-friendly, the product
-                    images are clear, and the checkout process is quick.
-                  </div>
-                  <div className="action mt-3">
-                    <div className="flex items-center gap-4">
-                      <div className="like-btn flex items-center gap-1 cursor-pointer">
-                        <Icon.HandsClapping size={18} />
-                        <div className="text-button">20</div>
+                <div className="item flex max-lg:flex-col gap-y-4 w-full py-6 border-t border-line">
+                  <div className="left lg:w-1/4 w-full lg:pr-[15px]">
+                    <div className="list-img-review flex gap-2">
+                      <Image
+                        src={
+                          "https://anvogue.vercel.app/_next/image?url=%2Fimages%2Fproduct%2Ffashion%2F9-2.png&w=640&q=75"
+                        }
+                        width={200}
+                        height={200}
+                        alt="img"
+                        className="w-[60px] aspect-square rounded-lg"
+                      />
+                      <Image
+                        src={
+                          "https://anvogue.vercel.app/_next/image?url=%2Fimages%2Fproduct%2Ffashion%2F9-3.png&w=640&q=75"
+                        }
+                        width={200}
+                        height={200}
+                        alt="img"
+                        className="w-[60px] aspect-square rounded-lg"
+                      />
+                      <Image
+                        src={
+                          "https://anvogue.vercel.app/_next/image?url=%2Fimages%2Fproduct%2Ffashion%2F9-4.png&w=640&q=75"
+                        }
+                        width={200}
+                        height={200}
+                        alt="img"
+                        className="w-[60px] aspect-square rounded-lg"
+                      />
+                    </div>
+                    <div className="user mt-3">
+                      <div className="text-title">Tony Nguyen</div>
+                      <div className="flex items-center gap-2">
+                        <div className="text-secondary2">1 days ago</div>
+                        <div className="text-secondary2">-</div>
+                        <div className="text-secondary2">
+                          <span>Yellow</span> / <span>XL</span>
+                        </div>
                       </div>
-                      <Link
-                        href={"#form-review"}
-                        className="reply-btn text-button text-secondary cursor-pointer hover:text-black"
-                      >
-                        Reply
-                      </Link>
                     </div>
                   </div>
+                  <div className="right lg:w-3/4 w-full lg:pl-[15px]">
+                    <Rate currentRate={5} size={16} />
+                    <div className="heading5 mt-3">
+                      Exceptional Fashion: The Perfect Blend of Style and
+                      Durability
+                    </div>
+                    <div className="body1 mt-3">
+                      The fashion brand{String.raw`'s`} online shopping
+                      experience is seamless. The website is user-friendly, the
+                      product images are clear, and the checkout process is
+                      quick.
+                    </div>
+                    <div className="action mt-3">
+                      <div className="flex items-center gap-4">
+                        <div className="like-btn flex items-center gap-1 cursor-pointer">
+                          <Icon.HandsClapping size={18} />
+                          <div className="text-button">20</div>
+                        </div>
+                        <Link
+                          href={"#form-review"}
+                          className="reply-btn text-button text-secondary cursor-pointer hover:text-black"
+                        >
+                          Reply
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="item flex max-lg:flex-col gap-y-4 w-full py-6 border-t border-line">
+                  <div className="left lg:w-1/4 w-full lg:pr-[15px]">
+                    <div className="list-img-review flex gap-2">
+                      <Image
+                        src={
+                          "https://anvogue.vercel.app/_next/image?url=%2Fimages%2Fproduct%2Ffashion%2F9-2.png&w=640&q=75"
+                        }
+                        width={200}
+                        height={200}
+                        alt="img"
+                        className="w-[60px] aspect-square rounded-lg"
+                      />
+                      <Image
+                        src={
+                          "https://anvogue.vercel.app/_next/image?url=%2Fimages%2Fproduct%2Ffashion%2F9-3.png&w=640&q=75"
+                        }
+                        width={200}
+                        height={200}
+                        alt="img"
+                        className="w-[60px] aspect-square rounded-lg"
+                      />
+                      <Image
+                        src={
+                          "https://anvogue.vercel.app/_next/image?url=%2Fimages%2Fproduct%2Ffashion%2F9-4.png&w=640&q=75"
+                        }
+                        width={200}
+                        height={200}
+                        alt="img"
+                        className="w-[60px] aspect-square rounded-lg"
+                      />
+                    </div>
+                    <div className="user mt-3">
+                      <div className="text-title">Tony Nguyen</div>
+                      <div className="flex items-center gap-2">
+                        <div className="text-secondary2">1 days ago</div>
+                        <div className="text-secondary2">-</div>
+                        <div className="text-secondary2">
+                          <span>Yellow</span> / <span>XL</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="right lg:w-3/4 w-full lg:pl-[15px]">
+                    <Rate currentRate={5} size={16} />
+                    <div className="heading5 mt-3">
+                      Elevate Your Wardrobe: Stunning Dresses That Make a
+                      Statement
+                    </div>
+                    <div className="body1 mt-3">
+                      I love how sustainable and ethically conscious this
+                      fashion brand is. They prioritize eco-friendly materials
+                      and fair trade practices, which makes me feel good about
+                      supporting them.
+                    </div>
+                    <div className="action mt-3">
+                      <div className="flex items-center gap-4">
+                        <div className="like-btn flex items-center gap-1 cursor-pointer">
+                          <Icon.HandsClapping size={18} />
+                          <div className="text-button">20</div>
+                        </div>
+                        <Link
+                          href={"#form-review"}
+                          className="reply-btn text-button text-secondary cursor-pointer hover:text-black"
+                        >
+                          Reply
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-button more-review-btn text-center mt-2 underline">
+                  View More Comments
                 </div>
               </div>
-              <div className="item flex max-lg:flex-col gap-y-4 w-full py-6 border-t border-line">
-                <div className="left lg:w-1/4 w-full lg:pr-[15px]">
-                  <div className="list-img-review flex gap-2">
-                  <Image
-                      src={
-                        "https://anvogue.vercel.app/_next/image?url=%2Fimages%2Fproduct%2Ffashion%2F9-2.png&w=640&q=75"
-                      }
-                      width={200}
-                      height={200}
-                      alt="img"
-                      className="w-[60px] aspect-square rounded-lg"
-                    />
-                    <Image
-                      src={
-                        "https://anvogue.vercel.app/_next/image?url=%2Fimages%2Fproduct%2Ffashion%2F9-3.png&w=640&q=75"
-                      }
-                      width={200}
-                      height={200}
-                      alt="img"
-                      className="w-[60px] aspect-square rounded-lg"
-                    />
-                    <Image
-                      src={
-                        "https://anvogue.vercel.app/_next/image?url=%2Fimages%2Fproduct%2Ffashion%2F9-4.png&w=640&q=75"
-                      }
-                      width={200}
-                      height={200}
-                      alt="img"
-                      className="w-[60px] aspect-square rounded-lg"
+              <div id="form-review" className="form-review pt-6">
+                <div className="heading4">Leave A comment</div>
+                <form className="grid sm:grid-cols-2 gap-4 gap-y-5 mt-6">
+                  <div className="name ">
+                    <input
+                      className="border-line px-4 pt-3 pb-3 w-full rounded-lg"
+                      id="username"
+                      type="text"
+                      placeholder="Your Name *"
+                      required
                     />
                   </div>
-                  <div className="user mt-3">
-                    <div className="text-title">Tony Nguyen</div>
-                    <div className="flex items-center gap-2">
-                      <div className="text-secondary2">1 days ago</div>
-                      <div className="text-secondary2">-</div>
-                      <div className="text-secondary2">
-                        <span>Yellow</span> / <span>XL</span>
-                      </div>
-                    </div>
+                  <div className="mail ">
+                    <input
+                      className="border-line px-4 pt-3 pb-3 w-full rounded-lg"
+                      id="email"
+                      type="email"
+                      placeholder="Your Email *"
+                      required
+                    />
                   </div>
-                </div>
-                <div className="right lg:w-3/4 w-full lg:pl-[15px]">
-                  <Rate currentRate={5} size={16} />
-                  <div className="heading5 mt-3">
-                    Elevate Your Wardrobe: Stunning Dresses That Make a
-                    Statement
+                  <div className="col-span-full message">
+                    <textarea
+                      className="border border-line px-4 py-3 w-full rounded-lg"
+                      id="message"
+                      name="message"
+                      placeholder="Your message *"
+                      required
+                    ></textarea>
                   </div>
-                  <div className="body1 mt-3">
-                    I love how sustainable and ethically conscious this fashion
-                    brand is. They prioritize eco-friendly materials and fair
-                    trade practices, which makes me feel good about supporting
-                    them.
+                  <div className="col-span-full flex items-start -mt-2 gap-2">
+                    <input
+                      type="checkbox"
+                      id="saveAccount"
+                      name="saveAccount"
+                      className="mt-1.5"
+                    />
+                    <label className="" htmlFor="saveAccount">
+                      Save my name, email, and website in this browser for the
+                      next time I comment.
+                    </label>
                   </div>
-                  <div className="action mt-3">
-                    <div className="flex items-center gap-4">
-                      <div className="like-btn flex items-center gap-1 cursor-pointer">
-                        <Icon.HandsClapping size={18} />
-                        <div className="text-button">20</div>
-                      </div>
-                      <Link
-                        href={"#form-review"}
-                        className="reply-btn text-button text-secondary cursor-pointer hover:text-black"
-                      >
-                        Reply
-                      </Link>
-                    </div>
+                  <div className="col-span-full sm:pt-3">
+                    <button className="button-main bg-white text-black border border-black">
+                      Submit Reviews
+                    </button>
                   </div>
-                </div>
+                </form>
               </div>
-              <div className="text-button more-review-btn text-center mt-2 underline">
-                View More Comments
-              </div>
-            </div>
-            <div id="form-review" className="form-review pt-6">
-              <div className="heading4">Leave A comment</div>
-              <form className="grid sm:grid-cols-2 gap-4 gap-y-5 mt-6">
-                <div className="name ">
-                  <input
-                    className="border-line px-4 pt-3 pb-3 w-full rounded-lg"
-                    id="username"
-                    type="text"
-                    placeholder="Your Name *"
-                    required
-                  />
-                </div>
-                <div className="mail ">
-                  <input
-                    className="border-line px-4 pt-3 pb-3 w-full rounded-lg"
-                    id="email"
-                    type="email"
-                    placeholder="Your Email *"
-                    required
-                  />
-                </div>
-                <div className="col-span-full message">
-                  <textarea
-                    className="border border-line px-4 py-3 w-full rounded-lg"
-                    id="message"
-                    name="message"
-                    placeholder="Your message *"
-                    required
-                  ></textarea>
-                </div>
-                <div className="col-span-full flex items-start -mt-2 gap-2">
-                  <input
-                    type="checkbox"
-                    id="saveAccount"
-                    name="saveAccount"
-                    className="mt-1.5"
-                  />
-                  <label className="" htmlFor="saveAccount">
-                    Save my name, email, and website in this browser for the
-                    next time I comment.
-                  </label>
-                </div>
-                <div className="col-span-full sm:pt-3">
-                  <button className="button-main bg-white text-black border border-black">
-                    Submit Reviews
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-        <div className="related-product md:py-20 py-10">
-          <div className="container">
-            <div className="heading3 text-center">Related Products</div>
-            <div className="list-product hide-product-sold  grid lg:grid-cols-4 grid-cols-2 md:gap-[30px] gap-5 md:mt-10 mt-6">
-              {data
-                .slice(Number(productId), Number(productId) + 4)
-                .map((item, index) => (
-                  <Product key={index} data={item} type="grid" />
-                ))}
             </div>
           </div>
-        </div>
+        )}
+        {productMain && productMain._id && (
+          <RelatedProducts productId={String(productMain._id)} />
+        )}
       </div>
     </>
   );

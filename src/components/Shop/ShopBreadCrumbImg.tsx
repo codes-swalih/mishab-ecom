@@ -87,7 +87,7 @@ const ShopBreadCrumbImg: React.FC<Props> = ({
   let filteredData = data.filter((product) => {
     let isShowOnlySaleMatched = true;
     if (showOnlySale) {
-      isShowOnlySaleMatched = product.sale;
+      isShowOnlySaleMatched = product.sale === true;
     }
 
     let isDataTypeMatched = true;
@@ -102,18 +102,18 @@ const ShopBreadCrumbImg: React.FC<Props> = ({
     }
 
     let isSizeMatched = true;
-    if (size) {
+    if (size && product.sizes) {
       isSizeMatched = product.sizes.includes(size);
     }
 
     let isPriceRangeMatched = true;
-    if (priceRange.min !== 0 || priceRange.max !== 100) {
+    if ((priceRange.min !== 0 || priceRange.max !== 100) && typeof product.price === 'number') {
       isPriceRangeMatched =
         product.price >= priceRange.min && product.price <= priceRange.max;
     }
 
     let isColorMatched = true;
-    if (color) {
+    if (color && product.variation) {
       isColorMatched = product.variation.some((item) => item.color === color);
     }
 
@@ -129,8 +129,8 @@ const ShopBreadCrumbImg: React.FC<Props> = ({
       isSizeMatched &&
       isColorMatched &&
       isBrandMatched &&
-      isPriceRangeMatched &&
-      product.category === "fashion"
+      isPriceRangeMatched
+      // Removed the hard-coded fashion category filter
     );
   });
 
@@ -138,23 +138,29 @@ const ShopBreadCrumbImg: React.FC<Props> = ({
   let sortedData = [...filteredData];
 
   if (sortOption === "soldQuantityHighToLow") {
-    filteredData = sortedData.sort((a, b) => b.sold - a.sold);
+    filteredData = sortedData.sort((a, b) => (b.sold || 0) - (a.sold || 0));
   }
 
   if (sortOption === "discountHighToLow") {
     filteredData = sortedData.sort(
-      (a, b) =>
-        Math.floor(100 - (b.price / b.originPrice) * 100) -
-        Math.floor(100 - (a.price / a.originPrice) * 100)
+      (a, b) => {
+        const bPrice = typeof b.price === 'number' ? b.price : 0;
+        const bOriginPrice = typeof b.originPrice === 'number' ? b.originPrice : bPrice;
+        const aPrice = typeof a.price === 'number' ? a.price : 0;
+        const aOriginPrice = typeof a.originPrice === 'number' ? a.originPrice : aPrice;
+        
+        return Math.floor(100 - (bPrice / (bOriginPrice || 1)) * 100) -
+               Math.floor(100 - (aPrice / (aOriginPrice || 1)) * 100);
+      }
     );
   }
 
   if (sortOption === "priceHighToLow") {
-    filteredData = sortedData.sort((a, b) => b.price - a.price);
+    filteredData = sortedData.sort((a, b) => (b.price || 0) - (a.price || 0));
   }
 
   if (sortOption === "priceLowToHigh") {
-    filteredData = sortedData.sort((a, b) => a.price - b.price);
+    filteredData = sortedData.sort((a, b) => (a.price || 0) - (b.price || 0));
   }
 
   const totalProducts = filteredData.length;
@@ -228,7 +234,7 @@ const ShopBreadCrumbImg: React.FC<Props> = ({
     <>
       <div className="breadcrumb-block style-img">
         <div className="breadcrumb-main bg-linear overflow-hidden">
-          <div className="container lg:pt-[134px] pt-24 pb-10 relative">
+          {/* <div className="container lg:pt-[134px] pt-24 pb-10 relative">
             <div className="main-content w-full h-full flex flex-col items-center justify-center relative z-[1]">
               <div className="text-content">
                 <div className="heading2 text-center">
@@ -269,7 +275,7 @@ const ShopBreadCrumbImg: React.FC<Props> = ({
                 className=""
               />
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -330,7 +336,7 @@ const ShopBreadCrumbImg: React.FC<Props> = ({
                                         </div>
                                     </div>
                                 </div> */}
-                <div className="check-sale flex items-center gap-2 cursor-pointer">
+                {/* <div className="check-sale flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
                     name="filterSale"
@@ -344,7 +350,7 @@ const ShopBreadCrumbImg: React.FC<Props> = ({
                   >
                     Show only products on sale
                   </label>
-                </div>
+                </div> */}
                 <div></div>
               </div>
               <div className="right flex items-center gap-3">

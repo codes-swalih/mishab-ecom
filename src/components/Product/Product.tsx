@@ -43,19 +43,25 @@ const Product: React.FC<ProductProps> = ({ data, type }) => {
   };
 
   const handleAddToCart = () => {
-    if (!cartState.cartArray.find((item) => item.id === data.id)) {
-      addToCart({ ...data });
-      updateCart(data.id, data.quantityPurchase, activeSize, activeColor);
+    if (!cartState.cartArray.find((item: any) => item.id === data.id)) {
+      // Format the product data to match ExtendedProductType
+      const formattedData = {
+        ...data,
+        // Convert complex image object to string if needed
+        image: typeof data.image === 'object' ? data.image.url : data.image
+      };
+      addToCart(formattedData);
+      updateCart(data.id || "", data.quantityPurchase || 0, activeSize || "", activeColor || "");
     } else {
-      updateCart(data.id, data.quantityPurchase, activeSize, activeColor);
+      updateCart(data.id || "", data.quantityPurchase || 0, activeSize || "", activeColor || "");
     }
     openModalCart();
   };
 
   const handleAddToWishlist = () => {
     // if product existed in wishlit, remove from wishlist and set state to false
-    if (wishlistState.wishlistArray.some((item) => item.id === data.id)) {
-      removeFromWishlist(data.id);
+    if (wishlistState.wishlistArray.some((item: any) => item.id === data.id)) {
+      removeFromWishlist(data.id || "");
     } else {
       // else, add to wishlist and set state to true
       addToWishlist(data);
@@ -66,8 +72,8 @@ const Product: React.FC<ProductProps> = ({ data, type }) => {
   const handleAddToCompare = () => {
     // if product existed in wishlit, remove from wishlist and set state to false
     if (compareState.compareArray.length < 3) {
-      if (compareState.compareArray.some((item) => item.id === data.id)) {
-        removeFromCompare(data.id);
+      if (compareState.compareArray.some((item: any) => item.id === data.id)) {
+        removeFromCompare(data.id || "");
       } else {
         // else, add to wishlist and set state to true
         addToCompare(data);
@@ -83,13 +89,18 @@ const Product: React.FC<ProductProps> = ({ data, type }) => {
     openQuickview(data);
   };
 
-  const handleDetailProduct = (productId: string) => {
-    // redirect to shop with category selected
-    router.push(`/product/default?id=${productId}`);
+  const handleDetailProduct = (productId: string | number | undefined) => {
+    if (!productId) {
+      router.push("/product/default");
+      return;
+    }
+    // Use slug if available, otherwise use id
+    const slug = data.slug || data.id;
+    router.push(`/product/${slug}`);
   };
 
-  let percentSale = Math.floor(100 - (data.price / data.originPrice) * 100);
-  let percentSold = Math.floor((data.sold / data.quantity) * 100);
+  let percentSale = Math.floor(100 - ((data.price || 0) / (data.originPrice || 1)) * 100);
+  let percentSold = Math.floor((data.sold || 0 / (data.quantity || 1)) * 100);
 
   return (
     <>
@@ -114,7 +125,7 @@ const Product: React.FC<ProductProps> = ({ data, type }) => {
                 <div
                   className={`add-wishlist-btn w-[32px] h-[32px] flex items-center justify-center rounded-full bg-white duration-300 relative ${
                     wishlistState.wishlistArray.some(
-                      (item) => item.id === data.id
+                      (item: any) => item.id === data.id || ""
                     )
                       ? "active"
                       : ""
@@ -128,7 +139,7 @@ const Product: React.FC<ProductProps> = ({ data, type }) => {
                     Add To Wishlist
                   </div>
                   {wishlistState.wishlistArray.some(
-                    (item) => item.id === data.id
+                    (item: any) => item.id === data.id || ""
                   ) ? (
                     <>
                       <Icon.Heart
@@ -146,7 +157,7 @@ const Product: React.FC<ProductProps> = ({ data, type }) => {
                 <div
                   className={`compare-btn w-[32px] h-[32px] flex items-center justify-center rounded-full bg-white duration-300 relative mt-2 ${
                     compareState.compareArray.some(
-                      (item) => item.id === data.id
+                      (item: any) => item.id === data.id || ""
                     )
                       ? "active"
                       : ""
@@ -165,35 +176,87 @@ const Product: React.FC<ProductProps> = ({ data, type }) => {
               </div>
               <div className="product-img w-full h-full aspect-[3/4]">
                 {activeColor ? (
-                  <>
-                    {
-                      <Image
-                        src={
-                          "https://anvogue.vercel.app/_next/image?url=%2Fimages%2Fproduct%2Ffashion%2F10-2.png&w=1080&q=75"
-                        }
-                        width={500}
-                        height={500}
-                        alt={data.name}
-                        priority={true}
-                        className="w-full h-full object-cover duration-700"
-                      />
-                    }
-                  </>
+                  <div>
+                    
+                  </div>
+                  // <>
+                  //   {
+                  //     <Image
+                  //       src={
+                  //         data.variation?.find(
+                  //           (item: any) => item.color === activeColor
+                  //         )?.image ||
+                  //         (Array.isArray(data.images) && data.images.length > 0
+                  //           ? typeof data.images[0] === "string"
+                  //             ? data.images[0]
+                  //             : typeof data.images[0]?.url === "string"
+                  //               ? data.images[0].url
+                  //               : ""
+                  //           : data.thumbImage && data.thumbImage.length > 0
+                  //           ? data.thumbImage[0]
+                  //           : "")
+                  //       }
+                  //       width={500}
+                  //       height={500}
+                  //       alt={data.name || ""}
+                  //       priority={true}
+                  //       className="w-full h-full object-cover duration-700"
+                  //     />
+                  //   }
+                  // </>
                 ) : (
                   <>
-                    {data.thumbImage.map((img, index) => (
+                    {data.image ? (
                       <Image
-                        key={index}
                         src={
-                          "https://anvogue.vercel.app/_next/image?url=%2Fimages%2Fproduct%2Ffashion%2F10-2.png&w=1080&q=75"
+                          typeof data.image === "string"
+                            ? data.image
+                            : data.image.url
                         }
                         width={500}
                         height={500}
                         priority={true}
-                        alt={data.name}
+                        alt={data.name || ""}
+                        className="w-full h-full object-cover duration-700"
+                        blurDataURL={
+                          typeof data.image !== "string" &&
+                          data.image.blurDataURL
+                            ? data.image.blurDataURL
+                            : undefined
+                        }
+                      />
+                    ) : Array.isArray(data.images) && data.images.length > 0 ? (
+                      <Image
+                        src={
+                          typeof data.images[0] === "string"
+                            ? data.images[0]
+                            : data.images[0]?.url || ""
+                        }
+                        width={500}
+                        height={500}
+                        priority={true}
+                        alt={data?.name || ""}
                         className="w-full h-full object-cover duration-700"
                       />
-                    ))}
+                    ) : data?.thumbImage && data.thumbImage.length > 0 ? (
+                      <Image
+                        key={0}
+                        src={
+                          typeof data.thumbImage[0] === "string"
+                            ? data.thumbImage[0]
+                            : data.thumbImage[0]?.url || ""
+                        }
+                        width={500}
+                        height={500}
+                        priority={true}
+                        alt={data?.name || "" }
+                        className="w-full h-full object-cover duration-700"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                        <Icon.ImageSquare size={48} className="text-gray-400" />
+                      </div>
+                    )}
                   </>
                 )}
               </div>
@@ -233,7 +296,7 @@ const Product: React.FC<ProductProps> = ({ data, type }) => {
                   </Marquee>
                 </>
               )}
-              <div className="list-action grid grid-cols-2 gap-3 px-5 absolute w-full bottom-5 max-lg:hidden">
+              {/* <div className="list-action grid grid-cols-2 gap-3 px-5 absolute w-full bottom-5 max-lg:hidden">
                 <div
                   className="quick-view-btn w-full text-button-uppercase py-2 text-center rounded-full duration-300 bg-white hover:bg-black hover:text-white"
                   onClick={(e) => {
@@ -273,7 +336,7 @@ const Product: React.FC<ProductProps> = ({ data, type }) => {
                       }}
                     >
                       <div className="list-size flex items-center justify-center flex-wrap gap-2">
-                        {data.sizes.map((item, index) => (
+                        {data?.sizes?.map((item: any, index: number) => (
                           <div
                             className={`size-item w-10 h-10 rounded-full flex items-center justify-center text-button bg-white border border-line ${
                               activeSize === item ? "active" : ""
@@ -297,7 +360,7 @@ const Product: React.FC<ProductProps> = ({ data, type }) => {
                     </div>
                   </>
                 )}
-              </div>
+              </div> */}
               <div className="list-action-icon flex items-center justify-center gap-2 absolute w-full bottom-3 z-[1] lg:hidden">
                 <div
                   className="quick-view-btn w-9 h-9 flex items-center justify-center rounded-lg duration-300 bg-white hover:bg-black hover:text-white"
@@ -339,69 +402,77 @@ const Product: React.FC<ProductProps> = ({ data, type }) => {
                       Available:{" "}
                     </span>
                     <span className="max-sm:text-xs">
-                      {data.quantity - data.sold}
+                      {data.quantity || 0 - (data.sold || 0)}
                     </span>
                   </div>
                 </div>
               </div>
-              <div className="product-name text-title duration-300">
+              <div className="line-clamp-2 text-title duration-300">
                 {data.name}
               </div>
-              {data.variation.length > 0 && data.action === "add to cart" && (
-                <div className="list-color py-2 max-md:hidden flex items-center gap-3 flex-wrap duration-500">
-                  {data.variation.map((item, index) => (
-                    <div
-                      key={index}
-                      className={`color-item w-8 h-8 rounded-full duration-300 relative ${
-                        activeColor === item.color ? "active" : ""
-                      }`}
-                      style={{ backgroundColor: `${item.colorCode}` }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleActiveColor(item.color);
-                      }}
-                    >
-                      <div className="tag-action bg-black text-white caption2 capitalize px-1.5 py-0.5 rounded-sm">
-                        {item.color}
+              {data?.variation &&
+                Array.isArray(data.variation) &&
+                data.variation.length > 0 &&
+                data.action === "add to cart" && (
+                  <div className="list-color py-2 max-md:hidden flex items-center gap-3 flex-wrap duration-500">
+                    {data?.variation?.map((item: any, index: number) => (
+                      <div
+                        key={index}
+                        className={`color-item w-8 h-8 rounded-full duration-300 relative ${
+                          activeColor === item.color ? "active" : ""
+                        }`}
+                        style={{ backgroundColor: `${item.colorCode}` }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleActiveColor(item.color);
+                        }}
+                      >
+                        <div className="tag-action bg-black text-white caption2 capitalize px-1.5 py-0.5 rounded-sm">
+                          {item.color}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {data.variation.length > 0 && data.action === "quick shop" && (
-                <div className="list-color-image max-md:hidden flex items-center gap-3 flex-wrap duration-500">
-                  {data.variation.map((item, index) => (
-                    <div
-                      className={`color-item w-12 h-12 rounded-xl duration-300 relative ${
-                        activeColor === item.color ? "active" : ""
-                      }`}
-                      key={index}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleActiveColor(item.color);
-                      }}
-                    >
-                      <Image
-                        src={"https://anvogue.vercel.app/_next/image?url=%2Fimages%2Fproduct%2Ffashion%2F10-2.png&w=1080&q=75"}
-                        width={100}
-                        height={100}
-                        alt="color"
-                        priority={true}
-                        className="rounded-xl w-full h-full object-cover"
-                      />
-                      <div className="tag-action bg-black text-white caption2 capitalize px-1.5 py-0.5 rounded-sm">
-                        {item.color}
+                    ))}
+                  </div>
+                )}
+              {data?.variation &&
+                Array.isArray(data.variation) &&
+                data.variation.length > 0 &&
+                data.action === "quick shop" && (
+                  <div className="list-color-image max-md:hidden flex items-center gap-3 flex-wrap duration-500">
+                    {data?.variation?.map((item: any, index: number) => (
+                      <div
+                        className={`color-item w-12 h-12 rounded-xl duration-300 relative ${
+                          activeColor === item.color ? "active" : ""
+                        }`}
+                        key={index}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleActiveColor(item.color);
+                        }}
+                      >
+                        <Image
+                          src={
+                            "https://anvogue.vercel.app/_next/image?url=%2Fimages%2Fproduct%2Ffashion%2F10-2.png&w=1080&q=75"
+                          }
+                          width={100}
+                          height={100}
+                          alt="color"
+                          priority={true}
+                          className="rounded-xl w-full h-full object-cover"
+                        />
+                        <div className="tag-action bg-black text-white caption2 capitalize px-1.5 py-0.5 rounded-sm">
+                          {item.color}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+                    ))}
+                  </div>
+                )}
 
-              <div className="product-price-block flex items-center gap-2 flex-wrap mt-1 duration-300 relative z-[1]">
-                <div className="product-price text-title">${data.price}.00</div>
+              <div className=" flex items-center gap-2 flex-wrap mt-1 duration-300 relative z-[1]">
+                <div className=" text-title font-semibold">${data.price}.00</div>
                 {percentSale > 0 && (
                   <>
-                    <div className="product-origin-price caption1 text-secondary2">
+                    <div className=" caption1 text-secondary2">
                       <del>${data.originPrice}.00</del>
                     </div>
                     <div className="product-sale caption1 font-medium bg-green px-3 py-0.5 inline-block rounded-full">
@@ -434,17 +505,69 @@ const Product: React.FC<ProductProps> = ({ data, type }) => {
                       </div>
                     )}
                     <div className="product-img w-full aspect-[3/4] rounded-2xl overflow-hidden">
-                      {data.thumbImage.map((img, index) => (
+                      {data.image ? (
                         <Image
-                          key={index}
-                          src={img}
+                          src={
+                            typeof data.image === "string"
+                              ? data.image
+                              : data.image.url
+                          }
                           width={500}
                           height={500}
                           priority={true}
-                          alt={data.name}
+                          alt={data.name || ""}
+                          className="w-full h-full object-cover duration-700"
+                          blurDataURL={
+                            typeof data.image !== "string" &&
+                            data.image.blurDataURL
+                              ? data.image.blurDataURL
+                              : undefined
+                          }
+                        />
+                      ) : Array.isArray(data.images) &&
+                        data.images.length > 0 ? (
+                        <Image
+                          src={
+                            typeof data.images[0] === "string"
+                              ? data.images[0]
+                              : data.images[0] &&
+                                typeof data.images[0] === "object" &&
+                                "url" in data.images[0]
+                              ? data.images[0].url
+                              : ""
+                          }
+                          width={500}
+                          height={500}
+                          priority={true}
+                          alt={data.name || ""}
                           className="w-full h-full object-cover duration-700"
                         />
-                      ))}
+                      ) : Array.isArray(data?.thumbImage) &&
+                        data.thumbImage.length > 0 ? (
+                        <Image
+                          src={
+                            typeof data.thumbImage[0] === "string"
+                              ? data.thumbImage[0]
+                              : data.thumbImage[0] &&
+                                typeof data.thumbImage[0] === "object" &&
+                                "url" in data.thumbImage[0]
+                              ? data.thumbImage[0].url
+                              : ""
+                          }
+                          width={500}
+                          height={500}
+                          priority={true}
+                          alt={data.name || ""}
+                          className="w-full h-full object-cover duration-700"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                          <Icon.ImageSquare
+                            size={48}
+                            className="text-gray-400"
+                          />
+                        </div>
+                      )}
                     </div>
                     <div className="list-action px-5 absolute w-full bottom-5 max-lg:hidden">
                       <div
@@ -456,7 +579,7 @@ const Product: React.FC<ProductProps> = ({ data, type }) => {
                         }}
                       >
                         <div className="list-size flex items-center justify-center flex-wrap gap-2">
-                          {data.sizes.map((item, index) => (
+                          {data?.sizes?.map((item: any, index: number) => (
                             <div
                               className={`size-item ${
                                 item !== "freesize" ? "w-10 h-10" : "h-10 px-4"
@@ -486,7 +609,7 @@ const Product: React.FC<ProductProps> = ({ data, type }) => {
                     <div className="product-infor max-sm:w-full">
                       <div
                         onClick={() => handleDetailProduct(data.id)}
-                        className="product-name heading6 inline-block duration-300"
+                        className="product-name heading6 inline-block duration-300 truncate max-w-full line-clamp-1"
                       >
                         {data.name}
                       </div>
@@ -503,10 +626,12 @@ const Product: React.FC<ProductProps> = ({ data, type }) => {
                           </div>
                         )}
                       </div>
-                      {data.variation.length > 0 &&
+                      {data?.variation &&
+                      Array.isArray(data.variation) &&
+                      data.variation.length > 0 &&
                       data.action === "add to cart" ? (
                         <div className="list-color max-md:hidden py-2 mt-5 mb-1 flex items-center gap-3 flex-wrap duration-300">
-                          {data.variation.map((item, index) => (
+                          {data?.variation?.map((item: any, index: number) => (
                             <div
                               key={index}
                               className={`color-item w-8 h-8 rounded-full duration-300 relative`}
@@ -520,34 +645,40 @@ const Product: React.FC<ProductProps> = ({ data, type }) => {
                         </div>
                       ) : (
                         <>
-                          {data.variation.length > 0 &&
+                          {data?.variation &&
+                          Array.isArray(data.variation) &&
+                          data.variation.length > 0 &&
                           data.action === "quick shop" ? (
                             <>
                               <div className="list-color flex items-center gap-2 flex-wrap mt-5">
-                                {data.variation.map((item, index) => (
-                                  <div
-                                    className={`color-item w-12 h-12 rounded-xl duration-300 relative ${
-                                      activeColor === item.color ? "active" : ""
-                                    }`}
-                                    key={index}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleActiveColor(item.color);
-                                    }}
-                                  >
-                                    <Image
-                                      src={item.colorImage}
-                                      width={100}
-                                      height={100}
-                                      alt="color"
-                                      priority={true}
-                                      className="rounded-xl"
-                                    />
-                                    <div className="tag-action bg-black text-white caption2 capitalize px-1.5 py-0.5 rounded-sm">
-                                      {item.color}
+                                {data?.variation?.map(
+                                  (item: any, index: number) => (
+                                    <div
+                                      className={`color-item w-12 h-12 rounded-xl duration-300 relative ${
+                                        activeColor === item.color
+                                          ? "active"
+                                          : ""
+                                      }`}
+                                      key={index}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleActiveColor(item.color);
+                                      }}
+                                    >
+                                      <Image
+                                        src={item.colorImage}
+                                        width={100}
+                                        height={100}
+                                        alt="color"
+                                        priority={true}
+                                        className="rounded-xl"
+                                      />
+                                      <div className="tag-action bg-black text-white caption2 capitalize px-1.5 py-0.5 rounded-sm">
+                                        {item.color}
+                                      </div>
                                     </div>
-                                  </div>
-                                ))}
+                                  )
+                                )}
                               </div>
                             </>
                           ) : (
@@ -573,7 +704,7 @@ const Product: React.FC<ProductProps> = ({ data, type }) => {
                         <div
                           className={`add-wishlist-btn w-[32px] h-[32px] flex items-center justify-center rounded-full bg-white duration-300 relative ${
                             wishlistState.wishlistArray.some(
-                              (item) => item.id === data.id
+                              (item: any) => item.id === data.id
                             )
                               ? "active"
                               : ""
@@ -587,7 +718,7 @@ const Product: React.FC<ProductProps> = ({ data, type }) => {
                             Add To Wishlist
                           </div>
                           {wishlistState.wishlistArray.some(
-                            (item) => item.id === data.id
+                            (item: any) => item.id === data.id
                           ) ? (
                             <>
                               <Icon.Heart
@@ -605,7 +736,7 @@ const Product: React.FC<ProductProps> = ({ data, type }) => {
                         <div
                           className={`compare-btn w-[32px] h-[32px] flex items-center justify-center rounded-full bg-white duration-300 relative ${
                             compareState.compareArray.some(
-                              (item) => item.id === data.id
+                              (item: any) => item.id === data.id
                             )
                               ? "active"
                               : ""
@@ -661,14 +792,14 @@ const Product: React.FC<ProductProps> = ({ data, type }) => {
               className="w-full aspect-square"
               width={5000}
               height={5000}
-              src={data.thumbImage[0]}
+              src={data.thumbImage && data.thumbImage.length > 0 ? (typeof data.thumbImage[0] === 'string' ? data.thumbImage[0] : (typeof data.thumbImage[0] === 'object' && data.thumbImage[0] && 'url' in data.thumbImage[0] ? data.thumbImage[0].url : '')) : ''}
               alt="img"
             />
             <div className="list-action flex flex-col gap-1 absolute top-0 right-0">
               <span
                 className={`add-wishlist-btn w-8 h-8 bg-white flex items-center justify-center rounded-full box-shadow-sm duration-300 ${
                   wishlistState.wishlistArray.some(
-                    (item) => item.id === data.id
+                    (item: any) => item.id === data.id
                   )
                     ? "active"
                     : ""
@@ -679,7 +810,7 @@ const Product: React.FC<ProductProps> = ({ data, type }) => {
                 }}
               >
                 {wishlistState.wishlistArray.some(
-                  (item) => item.id === data.id
+                  (item: any) => item.id === data.id
                 ) ? (
                   <>
                     <Icon.Heart
@@ -696,7 +827,9 @@ const Product: React.FC<ProductProps> = ({ data, type }) => {
               </span>
               <span
                 className={`compare-btn w-8 h-8 bg-white flex items-center justify-center rounded-full box-shadow-sm duration-300 ${
-                  compareState.compareArray.some((item) => item.id === data.id)
+                  compareState.compareArray.some(
+                    (item: any) => item.id === data.id
+                  )
                     ? "active"
                     : ""
                 }`}
@@ -729,7 +862,9 @@ const Product: React.FC<ProductProps> = ({ data, type }) => {
             </div>
           </div>
           <div className="product-infor mt-4">
-            <span className="text-title">{data.name}</span>
+            <h3 className="text-title line-clamp-1 overflow-hidden text-ellipsis">
+              {data.name}
+            </h3>
             <div className="flex gap-0.5 mt-1">
               <Rate currentRate={data.rate} size={16} />
             </div>

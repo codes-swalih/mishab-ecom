@@ -1,0 +1,335 @@
+"use client";
+
+import React, { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { ProductType } from "@/type/ProductType";
+import * as Icon from "@phosphor-icons/react/dist/ssr";
+import { useCart } from "@/context/CartContext";
+import { useModalCartContext } from "@/context/ModalCartContext";
+import { useWishlist } from "@/context/WishlistContext";
+import { useModalWishlistContext } from "@/context/ModalWishlistContext";
+import { useCompare } from "@/context/CompareContext";
+import { useModalCompareContext } from "@/context/ModalCompareContext";
+import { useModalQuickviewContext } from "@/context/ModalQuickviewContext";
+import { useRouter } from "next/navigation";
+import Marquee from "react-fast-marquee";
+import Rate from "../Other/Rate";
+
+interface ProductProps {
+  data: ProductType;
+  type: string;
+}
+
+const Product: React.FC<ProductProps> = ({ data, type }) => {
+  const [activeColor, setActiveColor] = useState<string>("");
+  const [activeSize, setActiveSize] = useState<string>("");
+  const [openQuickShop, setOpenQuickShop] = useState<boolean>(false);
+  const { addToCart, updateCart, cartState } = useCart();
+  const { openModalCart } = useModalCartContext();
+  const { addToWishlist, removeFromWishlist, wishlistState } = useWishlist();
+  const { openModalWishlist } = useModalWishlistContext();
+  const { addToCompare, removeFromCompare, compareState } = useCompare();
+  const { openModalCompare } = useModalCompareContext();
+  const { openQuickview } = useModalQuickviewContext();
+  const router = useRouter();
+
+  const handleActiveColor = (item: string) => {
+    setActiveColor(item);
+  };
+
+  const handleActiveSize = (item: string) => {
+    setActiveSize(item);
+  };
+
+  const handleAddToCart = () => {
+    if (!cartState.cartArray.find((item: any) => item.id === data.id)) {
+      addToCart({ ...data });
+      updateCart(data.id, data.quantityPurchase, activeSize, activeColor);
+    } else {
+      updateCart(data.id, data.quantityPurchase, activeSize, activeColor);
+    }
+    openModalCart();
+  };
+
+  const handleAddToWishlist = () => {
+    if (!wishlistState.wishlistArray.find((item: any) => item.id === data.id)) {
+      addToWishlist({ ...data });
+    } else {
+      removeFromWishlist(data.id);
+    }
+    openModalWishlist();
+  };
+
+  const handleAddToCompare = () => {
+    if (!compareState.compareArray.find((item: any) => item.id === data.id)) {
+      addToCompare({ ...data });
+    } else {
+      removeFromCompare(data.id);
+    }
+    openModalCompare();
+  };
+
+  const handleQuickviewOpen = () => {
+    openQuickview({ ...data });
+  };
+
+  const handleDetailProduct = (id: string | number) => {
+    if (typeof id === 'string') {
+      router.push(`/product/${id}`);
+    }
+  };
+
+  // Calculate percentage values for sales and inventory
+  const percentSale = data.originPrice ? Math.floor(100 - (data.price / data.originPrice) * 100) : 0;
+  const percentSold = data.quantity ? Math.floor((data.sold / data.quantity) * 100) : 0;
+
+  return (
+    <>
+      {type === "grid" && (
+        <div className="product-item grid-type">
+          <div
+            onClick={() => data.id && handleDetailProduct(data.id)}
+            className="product-main cursor-pointer block"
+          >
+            <div className="product-thumb bg-white relative overflow-hidden rounded-2xl">
+              {data.new && (
+                <div className="product-tag text-button-uppercase bg-green px-3 py-0.5 inline-block rounded-full absolute top-3 left-3 z-[1]">
+                  New
+                </div>
+              )}
+              {data.sale && (
+                <div className="product-tag text-button-uppercase text-white bg-red px-3 py-0.5 inline-block rounded-full absolute top-3 left-3 z-[1]">
+                  Sale
+                </div>
+              )}
+              <div className="list-action-right absolute top-3 right-3 max-lg:hidden">
+                <div
+                  className={`add-wishlist-btn w-[32px] h-[32px] flex items-center justify-center rounded-full bg-white duration-300 relative ${
+                    wishlistState.wishlistArray.some(
+                      (item: any) => item.id === data.id
+                    )
+                      ? "active"
+                      : ""
+                  }`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleAddToWishlist();
+                  }}
+                >
+                  <div className="tag-action bg-black text-white caption2 px-1.5 py-0.5 rounded-sm">
+                    Add To Wishlist
+                  </div>
+                  {wishlistState.wishlistArray.some(
+                    (item: any) => item.id === data.id
+                  ) ? (
+                    <Icon.Heart
+                      size={18}
+                      weight="fill"
+                      className="text-white"
+                    />
+                  ) : (
+                    <Icon.Heart size={18} />
+                  )}
+                </div>
+                <div
+                  className={`compare-btn w-[32px] h-[32px] flex items-center justify-center rounded-full bg-white duration-300 relative mt-2 ${
+                    compareState.compareArray.some(
+                      (item: any) => item.id === data.id
+                    )
+                      ? "active"
+                      : ""
+                  }`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleAddToCompare();
+                  }}
+                >
+                  <div className="tag-action bg-black text-white caption2 px-1.5 py-0.5 rounded-sm">
+                    Compare Product
+                  </div>
+                  <Icon.Repeat size={18} className="compare-icon" />
+                  <Icon.CheckCircle size={20} className="checked-icon" />
+                </div>
+              </div>
+              <div className="product-img w-full h-full aspect-[3/4]">
+                {activeColor ? (
+                  <Image
+                    src={data?.image?.url || "/images/product-placeholder.png"}
+                    width={500}
+                    height={500}
+                    alt={data.name || "Product"}
+                    priority={true}
+                    className="w-full h-full object-cover duration-700"
+                    placeholder={data?.image?.blurDataURL ? "blur" : "empty"}
+                    blurDataURL={data?.image?.blurDataURL}
+                  />
+                ) : (
+                  <>
+                    {data?.thumbImage ? (
+                      data?.thumbImage?.map((img: any, index: number) => (
+                        <Image
+                          key={index}
+                          src={img}
+                          width={500}
+                          height={500}
+                          priority={true}
+                          alt={data.name || "Product"}
+                          className="w-full h-full object-cover duration-700"
+                        />
+                      ))
+                    ) : (
+                      <Image
+                        src={data?.image?.url || "/images/product-placeholder.png"}
+                        width={500}
+                        height={500}
+                        alt={data.name || "Product"}
+                        priority={true}
+                        className="w-full h-full object-cover duration-700"
+                        placeholder={data?.image?.blurDataURL ? "blur" : "empty"}
+                        blurDataURL={data?.image?.blurDataURL}
+                      />
+                    )}
+                  </>
+                )}
+              </div>
+              {data.sale && (
+                <Marquee className="banner-sale-auto bg-black absolute bottom-0 left-0 w-full py-1.5">
+                  <div className="caption2 font-semibold uppercase text-white px-2.5">
+                    Hot Sale {percentSale}% OFF
+                  </div>
+                  <Icon.Lightning weight="fill" className="text-red" />
+                  <div className="caption2 font-semibold uppercase text-white px-2.5">
+                    Hot Sale {percentSale}% OFF
+                  </div>
+                  <Icon.Lightning weight="fill" className="text-red" />
+                  <div className="caption2 font-semibold uppercase text-white px-2.5">
+                    Hot Sale {percentSale}% OFF
+                  </div>
+                  <Icon.Lightning weight="fill" className="text-red" />
+                </Marquee>
+              )}
+              <div className="list-action grid grid-cols-2 gap-3 px-5 absolute w-full bottom-5 max-lg:hidden">
+                <div
+                  className="quick-view-btn w-full text-button-uppercase py-2 text-center rounded-full duration-300 bg-white hover:bg-black hover:text-white"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleQuickviewOpen();
+                  }}
+                >
+                  Quick View
+                </div>
+                {data.action === "add to cart" ? (
+                  <div
+                    className="add-cart-btn w-full text-button-uppercase py-2 text-center rounded-full duration-500 bg-white hover:bg-black hover:text-white"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAddToCart();
+                    }}
+                  >
+                    Add To Cart
+                  </div>
+                ) : (
+                  <>
+                    <div
+                      className="quick-shop-btn text-button-uppercase py-2 text-center rounded-full duration-500 bg-white hover:bg-black hover:text-white"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpenQuickShop(!openQuickShop);
+                      }}
+                    >
+                      Quick Shop
+                    </div>
+                    <div
+                      className={`quick-shop-block absolute left-5 right-5 bg-white p-5 rounded-[20px] ${
+                        openQuickShop ? "open" : ""
+                      }`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                      }}
+                    >
+                      <div className="list-size flex items-center justify-center flex-wrap gap-2">
+                        {data?.sizes?.map((item: any, index: number) => (
+                          <div
+                            key={index}
+                            className={`size-item w-12 h-12 rounded-full flex items-center justify-center duration-300 ${
+                              activeSize === item ? "active" : ""
+                            }`}
+                            onClick={() => handleActiveSize(item)}
+                          >
+                            {item}
+                          </div>
+                        ))}
+                      </div>
+                      <div
+                        className="add-cart-btn bg-white text-button-uppercase py-2 text-center rounded-full duration-500 mt-4 hover:bg-black hover:text-white"
+                        onClick={() => {
+                          handleAddToCart();
+                          setOpenQuickShop(false);
+                        }}
+                      >
+                        Add To Cart
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+            <div className="product-infor mt-4">
+              <div className="flex items-center justify-between">
+                <div className="product-name text-title">
+                  {data.name}
+                </div>
+              </div>
+              <div className="product-price-block flex items-center gap-2 flex-wrap mt-1">
+                <div className="product-price text-title">
+                  ${data.price}.00
+                </div>
+                {data.originPrice && (
+                  <div className="product-origin-price text-title text-secondary2 line-through">
+                    ${data.originPrice}.00
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {type === "list" && (
+        <div className="product-item list-type">
+          {/* List type product rendering logic here */}
+        </div>
+      )}
+
+      {type === "minimal" && (
+        <div className="product-item minimal-type">
+          {/* Minimal type product rendering logic here */}
+        </div>
+      )}
+
+      {type === "minimal-withmeta" && (
+        <div className="product-item minimal-withmeta-type">
+          {/* Minimal with meta type product rendering logic here */}
+        </div>
+      )}
+
+      {type === "instagram" && (
+        <div className="product-item instagram-type">
+          {/* Instagram type product rendering logic here */}
+        </div>
+      )}
+      
+      {type === "marketplace" && (
+        <div
+          className="product-item style-marketplace p-4 border border-line rounded-2xl"
+          onClick={() => data.id && handleDetailProduct(data.id)}
+        >
+          {/* Marketplace type product rendering logic here */}
+        </div>
+      )}
+    </>
+  );
+};
+
+export default Product;

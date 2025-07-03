@@ -16,6 +16,7 @@ import { Inter, Poppins } from "next/font/google";
 import { FaRegHeart } from "react-icons/fa";
 import { BsCart } from "react-icons/bs";
 import { FaRegUser } from "react-icons/fa6";
+import Providers from "../providers";
 import { FcGoogle } from "react-icons/fc";
 const inter = Poppins({ subsets: ["latin"], weight: "400" });
 
@@ -38,6 +39,8 @@ export default function RootLayout({
       <html lang="en">
         <body className={`${inter.className} antialiased `}>
           <AppRouterCacheProvider>
+            <Providers isAuth={false}>
+
             <div className=" w-full flex flex-col  bg-[#747794] bg-opacity-10 ">
               {/* <div className=" w-full h-12  bg-white text-black px-3 flex items-center justify-between">
                 <h1 className=" text-sm font-bold">
@@ -56,7 +59,7 @@ export default function RootLayout({
                 </div>
               </div> */}
               <div className=" w-full flex justify-center">
-                <div className=" md:w-11/12 md:flex md:flex-col flex flex-col  md:gap-5 md:mt-5 w-full px-0 md:px-0">
+                <div className="  md:flex md:flex-col flex flex-col  md:gap-5 w-full px-0 md:px-0">
                   {/* <Navbar /> */}
                   {children}
                   {/* <ModalCart serverTimeLeft={serverTimeLeft} />
@@ -67,6 +70,7 @@ export default function RootLayout({
                 </div>
               </div>
             </div>
+            </Providers>
           </AppRouterCacheProvider>
         </body>
       </html>

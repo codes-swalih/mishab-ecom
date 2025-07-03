@@ -14,6 +14,10 @@ import { useModalWishlistContext } from "@/context/ModalWishlistContext";
 import { useModalSearchContext } from "@/context/ModalSearchContext";
 import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/navigation";
+import { useDispatch } from "react-redux";
+import { setLogout } from "@/redux/slices/user";
+import { resetWishlist } from "@/redux/slices/wishlist";
+import toast from "react-hot-toast";
 
 interface Props {
   props: string;
@@ -22,6 +26,7 @@ interface Props {
 const MenuOne: React.FC<Props> = ({ props }) => {
   const router = useRouter();
   const pathname = usePathname();
+  const dispatch = useDispatch();
   let [selectedType, setSelectedType] = useState<string | null>();
   const { openLoginPopup, handleLoginPopup } = useLoginPopup();
   const { openMenuMobile, handleMenuMobile } = useMenuMobile();
@@ -30,6 +35,36 @@ const MenuOne: React.FC<Props> = ({ props }) => {
   const { cartState } = useCart();
   const { openModalWishlist } = useModalWishlistContext();
   const { openModalSearch } = useModalSearchContext();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  
+  // Check authentication status when component mounts
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      setIsLoggedIn(true);
+    } else {
+      setIsLoggedIn(false);
+    }
+  }, []);
+  
+  // Logout function
+  const handleLogout = () => {
+    // Remove token
+    localStorage.removeItem('token');
+    
+    // Update Redux state
+    dispatch(setLogout());
+    dispatch(resetWishlist());
+    
+    // Close login popup
+    handleLoginPopup();
+    
+    // Show success message
+    toast.success('Logged out successfully');
+    
+    // Redirect to home page
+    router.push('/');
+  };
 
   const handleOpenSubNavMobile = (index: number) => {
     setOpenSubNavMobile(openSubNavMobile === index ? null : index);
@@ -78,18 +113,39 @@ const MenuOne: React.FC<Props> = ({ props }) => {
           <div className="header-main flex justify-between h-full">
             <div
               className="menu-mobile-icon lg:hidden flex items-center"
-              onClick={handleMenuMobile}
+              // onClick={handleMenuMobile}
             >
-              <i className="icon-category text-2xl"></i>
+              {/* <i className="icon-category text-2xl"></i> */}
+              <Link
+                href={"/"}
+                className=" mt-5"
+              >
+                <div className="">
+                  <Image
+                    src="/images/logo.png"
+                    alt="Logo"
+                    width={100}
+                    height={100}
+                  />
+                </div>
+              </Link>
             </div>
             <div className="left flex items-center gap-16">
               <Link
                 href={"/"}
-                className="flex items-center max-lg:absolute max-lg:left-1/2 max-lg:-translate-x-1/2"
+                className=" items-center max-lg:absolute hidden mt-7 md:flex max-lg:left-1/2 max-lg:-translate-x-1/2"
               >
-                <div className="heading4">SHOPPING LALA</div>
+                <div className="">
+                  <Image
+                    src="/images/logo.png"
+                    alt="Logo"
+                    width={150}
+                    height={150}
+                  />
+                </div>
               </Link>
-              <div className="menu-main h-full max-lg:hidden">
+ 
+              {/* <div className="menu-main h-full max-lg:hidden">
                 <ul className="flex items-center gap-8 h-full">
                   <li className="h-full relative">
                     <Link
@@ -112,7 +168,7 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                             Home Fashion 1
                           </Link>
                         </li>
-                        {/* <li>
+                        <li>
                                                     <Link href="/homepages/fashion2" className='link text-secondary duration-300'>
                                                         Home Fashion 2
                                                     </Link>
@@ -136,10 +192,10 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                                                     <Link href="/homepages/fashion6" className='link text-secondary duration-300'>
                                                         Home Fashion 6
                                                     </Link>
-                                                </li> */}
+                                                </li>
                       </ul>
                       <ul>
-                        {/* <li>
+                        <li>
                                                     <Link href="/homepages/fashion7" className='link text-secondary duration-300'>
                                                         Home Fashion 7
                                                     </Link>
@@ -168,10 +224,10 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                                                     <Link href="/homepages/underwear" className='link text-secondary duration-300'>
                                                         Home Underwear
                                                     </Link>
-                                                </li> */}
+                                                </li>
                       </ul>
                       <ul>
-                        {/* <li>
+                        <li>
                                                     <Link href="/homepages/cosmetic1" className='link text-secondary duration-300'>
                                                         Home Cosmetic 1
                                                     </Link>
@@ -200,10 +256,10 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                                                     <Link href="/homepages/furniture" className='link text-secondary duration-300'>
                                                         Home Furniture
                                                     </Link>
-                                                </li> */}
+                                                </li>
                       </ul>
                       <ul>
-                        {/* <li>
+                        <li>
                                                     <Link href="/homepages/watch" className='link text-secondary duration-300'>
                                                         Home Watch
                                                     </Link>
@@ -227,7 +283,7 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                                                     <Link href="/homepages/marketplace" className='text-secondary duration-300'>
                                                         Home Marketplace
                                                     </Link>
-                                                </li> */}
+                                                </li> 
                       </ul>
                     </div>
                   </li>
@@ -649,7 +705,7 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                     >
                       Shopeee
                     </Link>
-                    {/* <div className="mega-menu absolute top-[74px] left-0 bg-white w-screen">
+                    <div className="mega-menu absolute top-[74px] left-0 bg-white w-screen">
                                             <div className="container">
                                                 <div className="flex justify-between py-8">
                                                     <div className="nav-link basis-2/3 flex justify-between pr-12">
@@ -860,7 +916,7 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div> */}
+                                        </div>
                   </li>
                   <li className="h-full">
                     <Link
@@ -882,9 +938,9 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                               <ul>
                                 <li>
                                   <Link
-                                    href={"/product/default"}
+                                    href={"/"}
                                     className={`link text-secondary duration-300 ${
-                                      pathname === "/product/default"
+                                      pathname === "/"
                                         ? "active"
                                         : ""
                                     }`}
@@ -1283,15 +1339,15 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                     </div>
                   </li>
                 </ul>
-              </div>
+              </div> */}
             </div>
             <div className="right flex gap-12">
               <div className="max-md:hidden search-icon flex items-center cursor-pointer relative">
-                <Icon.MagnifyingGlass
+                {/* <Icon.MagnifyingGlass
                   size={24}
                   color="black"
                   onClick={openModalSearch}
-                />
+                /> */}
                 <div className="line absolute bg-line w-px h-6 -right-6"></div>
               </div>
               <div className="list-action flex items-center gap-4">
@@ -1305,33 +1361,51 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                     className={`login-popup absolute top-[74px] w-[320px] p-7 rounded-xl bg-white box-shadow-sm 
                                             ${openLoginPopup ? "open" : ""}`}
                   >
-                    <Link
-                      href={"/login"}
-                      className="button-main w-full text-center"
-                    >
-                      Login
-                    </Link>
-                    <div className="text-secondary text-center mt-3 pb-4">
-                      Don’t have an account?
-                      <Link
-                        href={"/register"}
-                        className="text-black pl-1 hover:underline"
-                      >
-                        Register
-                      </Link>
-                    </div>
-                    <div className="bottom pt-4 border-t border-line"></div>
-                    <Link href={"#!"} className="body1 hover:underline">
-                      Support
-                    </Link>
+                    {isLoggedIn ? (
+                      <>
+                        <button 
+                          onClick={handleLogout}
+                          className="button-main w-full text-center bg-red-600 hover:bg-red-700 transition-colors"
+                        >
+                          Logout
+                        </button>
+                        <div className="text-secondary text-center mt-3 pb-4">
+                          <Link
+                            href="/my-account"
+                            className="text-black hover:underline"
+                            onClick={() => handleLoginPopup()}
+                          >
+                            My Account
+                          </Link>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <Link
+                          href={"/login"}
+                          className="button-main w-full text-center"
+                        >
+                          Login
+                        </Link>
+                        <div className="text-secondary text-center mt-3 pb-4">
+                          Don't have an account?
+                          <Link
+                            href={"/register"}
+                            className="text-black pl-1 hover:underline"
+                          >
+                            Register
+                          </Link>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
-                <div
+                {/* <div
                   className="max-md:hidden wishlist-icon flex items-center cursor-pointer"
                   onClick={openModalWishlist}
                 >
                   <Icon.Heart size={24} color="black" />
-                </div>
+                </div> */}
                 <Link href={"/cart"}>
                   <div
                     className="cart-icon flex items-center relative cursor-pointer"
@@ -2317,7 +2391,7 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                                   <Link
                                     href={"/"}
                                     className={`link text-secondary duration-300 ${
-                                      pathname === "/product/default"
+                                      pathname === "/"
                                         ? "active"
                                         : ""
                                     }`}
