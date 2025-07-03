@@ -246,7 +246,7 @@ const MyAccount = () => {
                                                         const firstProduct = order.items && order.items.length > 0 ? order.items[0] : null;
                                                         
                                                         return (
-                                                            <tr className="item duration-300 border-b border-line" key={index}>
+                                                            <tr key={index} className="item duration-300 border-b border-line">
                                                                 <th scope="row" className="py-3 text-left">
                                                                     <strong className="text-title">{order.orderNumber || order._id?.substring(0, 8)}</strong>
                                                                 </th>

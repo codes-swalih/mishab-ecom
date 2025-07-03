@@ -34,7 +34,7 @@ export default function CategoriesPage() {
                 Shop by Categories
               </h1>
               <p className="text-secondary text-base md:text-lg max-w-3xl mx-auto">
-                Explore our wide range of products organized by categories to find exactly what you're looking for.
+                Explore our wide range of products organized by categories to find exactly what you&apos;re looking for.
               </p>
             </div>
           </div>
