@@ -22,7 +22,7 @@ function getToken() {
 }
 const baseURL =
   process.env.NODE_ENV === 'production'
-    ? process.env.BASE_URL
+    ? 'https://smeraassosiates.com'
     : 'https://smeraassosiates.com';
 
 const config = {
